@@ -6,7 +6,7 @@
 
 ## 配置模型
 
-打开**设置 → 模型**，输入 [DeepSeek API 密钥](https://platform.deepseek.com/)并保存。模型路由会立即可用，不需要重启服务器。
+首次启动且没有可用提供商时，dsh 会提示配置模型并打开**设置 → 模型**。在该页添加提供商——[DeepSeek API 密钥](https://platform.deepseek.com/)、第三方提供商，或自定义 OpenAI 兼容端点——并填写 API 地址、模型和密钥。模型路由会立即可用，不需要重启服务器。
 
 [模型配置指南](./providers.zh.md)介绍其他提供方和自定义 OpenAI 兼容端点。
 

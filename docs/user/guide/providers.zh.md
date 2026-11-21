@@ -2,7 +2,7 @@
 
 [English](providers.md) | 中文
 
-本指南假定你已按照[根 README](../../../README.zh.md#run)启动 Web UI。模型变更会在下一次请求时生效，不需要重启服务器。
+本指南假定你已按照[根 README](../../../README.zh.md#run)启动 Web UI。首次启动且没有可用提供商时，dsh 会提示配置模型并打开本页面；可在下方添加任意提供商。模型变更会在下一次请求时生效，不需要重启服务器。
 
 ## 配置 DeepSeek
 

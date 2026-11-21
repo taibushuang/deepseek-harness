@@ -9,6 +9,13 @@
   margin-top: 24px;
 }
 
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 24px;
+}
+
 @media (max-width: 560px) {
   .editor {
     margin-top: 20px;

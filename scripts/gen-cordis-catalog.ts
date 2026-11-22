@@ -166,6 +166,7 @@ export const SERVICE_PAGE: Record<string, string> = {
   webhookRuntime: 'webhook.md',
   workspaceRegistry: 'workspace.md',
   workspaceController: 'workspace.md',
+  fileTags: 'filesystem.md',
   workspaceFiles: 'workspace.md',
   workspaceChanges: 'deliverables.md',
   terminalController: 'workspace.md',
@@ -192,6 +193,7 @@ export const SERVICE_PAGE: Record<string, string> = {
  */
 export const SERVICE_WALK_EXEMPTIONS: Record<string, string> = {
   timeline: 'experimental session data service internal to the bundle — packages/experimental/timeline/README.md owns its behavior',
+  openInApp: 'client-side native path opening surface — packages/client/ui-open-in-app/README.md owns the API',
   contextMenus: 'client-side interface-typed menu registry — packages/client/ui-context-menu/README.md owns the API',
   fileActions: 'client-side interface-typed file actions — packages/client/ui-file-actions/README.md owns the API',
   invocation: 'not a service: per-call accessor (RemoteInvocation | undefined) the Gateway derives for each Remote call — packages/api/gateway/README.md owns the contract',

@@ -1290,6 +1290,43 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'fileTags',
+    summary: 'Central file-tag service.',
+    description: 'Central file-tag service. One database handle serves both the model tools and the `fileTags` Remote namespace, so a tag added in either place is visible in both.',
+    methods: [
+      {
+        signature: '@Remote async listTags(signal: AbortSignal): Promise<readonly TagSummary[]>',
+        description: 'Read every tag with its path count.',
+        parameters: [{ name: 'signal', description: 'caller cancellation.' }],
+        returns: 'tags sorted by name.',
+      },
+      {
+        signature: '@Remote async search(request: SearchRequest, signal: AbortSignal): Promise<readonly TaggedEntry[]>',
+        description: 'Find tagged paths matching a tag expression.',
+        parameters: [{ name: 'request', description: 'expression and optional result cap; the Host caps it at {@link SEARCH_LIMIT}.' }, { name: 'signal', description: 'caller cancellation.' }],
+        returns: 'matching entries sorted by path.',
+      },
+      {
+        signature: '@Remote async entry(request: EntryRequest, signal: AbortSignal): Promise<TaggedEntry | null>',
+        description: 'Read the tags of one path.',
+        parameters: [{ name: 'request', description: 'absolute path to read.' }, { name: 'signal', description: 'caller cancellation.' }],
+        returns: 'the tagged entry, or `null` when the path carries no tag.',
+      },
+      {
+        signature: '@Remote async tag(request: TagRequest, signal: AbortSignal): Promise<number>',
+        description: 'Attach tags to absolute paths.',
+        parameters: [{ name: 'request', description: 'paths and tag names to attach.' }, { name: 'signal', description: 'caller cancellation.' }],
+        returns: 'the number of paths tagged.',
+      },
+      {
+        signature: '@Remote async untag(request: TagRequest, signal: AbortSignal): Promise<number>',
+        description: 'Detach tags from absolute paths.',
+        parameters: [{ name: 'request', description: 'paths and tag names to detach.' }, { name: 'signal', description: 'caller cancellation.' }],
+        returns: 'the number of tag links removed.',
+      },
+    ],
+  },
+  {
     key: 'fileUploads',
     summary: 'Host service owning upload storage and receipts keyed by each receiving Agent\'s exact Session.',
     description: 'Host service owning upload storage and receipts keyed by each receiving Agent\'s exact Session.',
@@ -7411,6 +7448,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface EnterWorktreeRequest {\n    name: string;\n}',
   },
   {
+    name: 'EntryRequest',
+    declaration: 'export interface EntryRequest {\n    readonly path: string;\n}',
+  },
+  {
     name: 'EpochHeader',
     declaration: 'export interface EpochHeader {\n    config: LlmCallConfig;\n    adapterDefaults?: LlmCallConfigAdapterDefaults;\n    tools?: ToolSchema[];\n    system?: never;\n}',
   },
@@ -9631,6 +9672,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface SearchPathsResultView {\n    card: \'search\';\n    shape: \'paths\';\n    title?: string;\n    paths: string[];\n    truncated: boolean;\n    total: number;\n}',
   },
   {
+    name: 'SearchRequest',
+    declaration: 'export interface SearchRequest {\n    readonly expression: string;\n    readonly limit?: number;\n}',
+  },
+  {
     name: 'SearchResultView',
     declaration: 'export type SearchResultView = SearchMatchesResultView | SearchPathsResultView;',
   },
@@ -10841,6 +10886,18 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'TableValueOf',
     declaration: 'export type TableValueOf<S extends DomainSpec, N extends keyof S[\'tables\']> = S[\'tables\'][N] extends DomainTableSpec<string, infer V> ? V : never;',
+  },
+  {
+    name: 'TaggedEntry',
+    declaration: 'export interface TaggedEntry {\n    readonly path: string;\n    readonly isDir: boolean;\n    readonly tags: readonly string[];\n}',
+  },
+  {
+    name: 'TagRequest',
+    declaration: 'export interface TagRequest {\n    readonly paths: readonly string[];\n    readonly tags: readonly string[];\n}',
+  },
+  {
+    name: 'TagSummary',
+    declaration: 'export interface TagSummary {\n    readonly name: string;\n    readonly count: number;\n}',
   },
   {
     name: 'TeamTaskAction',

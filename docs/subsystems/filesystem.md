@@ -393,6 +393,55 @@ type FsErrorCode = typeof FS_ERROR_CODES[number]
 
 Generated from source by `scripts/gen-cordis-catalog.ts` (verified fresh by `pnpm run verify-cordis-catalog` in doc-sync; regenerate with `pnpm run gen-cordis-catalog`) — the language sides differ only in locale-specific paired document paths. Signature blocks use a `ts cordis-catalog` fence and keep the original source JSDoc; dispatch modes are defined in the [primer](../cordis-primer.md#dispatch-modes), and the framework-inherited `ctx` API lives in [cordis-api/inherited.md](../cordis-api/inherited.md).
 
+<a id="ctxfiletags--filetags"></a>
+
+### `ctx.fileTags` — `FileTags`
+
+Central file-tag service. One database handle serves both the model tools and the `fileTags` Remote namespace, so a tag added in either place is visible in both.
+
+```ts cordis-catalog
+/**
+ * Read every tag with its path count.
+ * @param signal - caller cancellation.
+ * @returns tags sorted by name.
+ */
+@Remote async listTags(signal: AbortSignal): Promise<readonly TagSummary[]>
+
+/**
+ * Find tagged paths matching a tag expression.
+ * @param request - expression and optional result cap; the Host caps it at {@link SEARCH_LIMIT}.
+ * @param signal - caller cancellation.
+ * @returns matching entries sorted by path.
+ */
+@Remote async search(request: SearchRequest, signal: AbortSignal): Promise<readonly TaggedEntry[]>
+
+/**
+ * Read the tags of one path.
+ * @param request - absolute path to read.
+ * @param signal - caller cancellation.
+ * @returns the tagged entry, or `null` when the path carries no tag.
+ */
+@Remote async entry(request: EntryRequest, signal: AbortSignal): Promise<TaggedEntry | null>
+
+/**
+ * Attach tags to absolute paths.
+ * @param request - paths and tag names to attach.
+ * @param signal - caller cancellation.
+ * @returns the number of paths tagged.
+ */
+@Remote async tag(request: TagRequest, signal: AbortSignal): Promise<number>
+
+/**
+ * Detach tags from absolute paths.
+ * @param request - paths and tag names to detach.
+ * @param signal - caller cancellation.
+ * @returns the number of tag links removed.
+ */
+@Remote async untag(request: TagRequest, signal: AbortSignal): Promise<number>
+```
+
+Source: [`packages/experimental/filetags/src/index.ts`](../../packages/experimental/filetags/src/index.ts)
+
 <a id="ctxfs--filesystem-abstract-seam"></a>
 
 ### `ctx.fs` — `FileSystem` (abstract seam)

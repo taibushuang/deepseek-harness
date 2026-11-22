@@ -2848,11 +2848,11 @@ export const CLIENT_SLOT_API: readonly ClientSlotEntry[] = [
       },
     ],
     ownerProps: [
-      '/** Native file action selected by an explicit user gesture. */\nexport type PresentedAction = \'open\' | \'reveal\'',
-      '/**\n * Settled result of one native file gesture, for the contributed control to\n * announce: the Host acknowledged an application open or a file-manager\n * reveal, the gesture failed, or the request was deliberately dropped because\n * the same file was already opening or this controller was disposed. Only an\n * acknowledged operation may be announced as a success.\n */\nexport type PresentedOpenOutcome =\n  | { readonly kind: \'opened\' }\n  | { readonly kind: \'revealed\' }\n  | { readonly kind: \'failed\'; readonly failure: PresentedOpenFailure }\n  | { readonly kind: \'skipped\' }',
+      '/** Owner face both file-action slots hand to their entries. */\nexport interface FileActionOwner {\n  /** Authenticated document-relative action route carrying Session event coordinates. */\n  readonly actionUrl: string\n  readonly available: boolean\n  readonly pending: boolean\n  /** Execute the selected native action, publish status on the owning file surface, and report what settled. */\n  readonly onAction: (action: PresentedAction, application?: string) => Promise<PresentedOpenOutcome>\n}',
     ],
     ownerPropsReferences: [
-      'PresentedOpenFailure',
+      'PresentedAction',
+      'PresentedOpenOutcome',
     ],
     standardProps: [
       'useRemoteAccess: (action: RemoteEndpoint) => boolean',
@@ -2884,7 +2884,7 @@ export const CLIENT_SLOT_API: readonly ClientSlotEntry[] = [
     ],
     replaceRisk: 'none',
     example: 'return {\n  inject: [\'slots\'],\n  apply(ctx) {\n    ctx.slots.inject(\'deliverables.file.actions\', () => ctx.slots.register(\n      { name: \'deliverables.file.actions\', id: \'my-entry\', order: 100, label: \'My entry\' },\n      () => React.createElement(\'div\', null, \'hello\'),\n    ))\n  },\n}',
-    source: 'packages/client/ui-deliverables/src/client/file-actions.ts:8',
+    source: 'packages/client/ui-deliverables/src/client/file-actions.ts:18',
   },
   {
     key: 'deliverables.review.file.actions',
@@ -2913,10 +2913,11 @@ export const CLIENT_SLOT_API: readonly ClientSlotEntry[] = [
       },
     ],
     ownerProps: [
-      '/** Slot contract table. Owners extend via declaration merging; entries are {@link SlotEntryDef}. */\nexport interface SlotMap {}',
+      '/** Owner face both file-action slots hand to their entries. */\nexport interface FileActionOwner {\n  /** Authenticated document-relative action route carrying Session event coordinates. */\n  readonly actionUrl: string\n  readonly available: boolean\n  readonly pending: boolean\n  /** Execute the selected native action, publish status on the owning file surface, and report what settled. */\n  readonly onAction: (action: PresentedAction, application?: string) => Promise<PresentedOpenOutcome>\n}',
     ],
     ownerPropsReferences: [
-      'SlotEntryDef',
+      'PresentedAction',
+      'PresentedOpenOutcome',
     ],
     standardProps: [
       'useRemoteAccess: (action: RemoteEndpoint) => boolean',
@@ -2948,7 +2949,7 @@ export const CLIENT_SLOT_API: readonly ClientSlotEntry[] = [
     ],
     replaceRisk: 'none',
     example: 'return {\n  inject: [\'slots\'],\n  apply(ctx) {\n    ctx.slots.inject(\'deliverables.review.file.actions\', () => ctx.slots.register(\n      { name: \'deliverables.review.file.actions\', id: \'my-entry\', order: 100, label: \'My entry\' },\n      () => React.createElement(\'div\', null, \'hello\'),\n    ))\n  },\n}',
-    source: 'packages/client/ui-deliverables/src/client/file-actions.ts:21',
+    source: 'packages/client/ui-deliverables/src/client/file-actions.ts:24',
   },
   {
     key: 'forge.change-request.card.actions',
@@ -5120,6 +5121,7 @@ export const CLIENT_SLOT_API: readonly ClientSlotEntry[] = [
       'client-ui-sidebar-right GuideBody',
       'client-ui-sidebar-terminal LazyTerminalBody',
       'client-ui-subagent SidebarChatTab',
+      'client-ui-filetags TagPanel',
       'experimental-client-ui-forge ChangesTab',
       'experimental-session-inspector SessionInspectorView',
       'timeline Panel',

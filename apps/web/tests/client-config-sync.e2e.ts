@@ -10,6 +10,7 @@ import { launchWebScaffold, watchConsole } from './scaffold.ts'
 import { ZH_BROWSER_LOCALE, saveFailureShot } from './support.ts'
 
 const FIXTURE = fileURLToPath(new URL('./fixtures/plugins/fixture-synced-config', import.meta.url))
+const SCHEMASTERY_PACKAGE = '@deepseek-ai/schemastery'
 const SCHEMASTERY = fileURLToPath(new URL('../../../vendor/schemastery', import.meta.url))
 const PACKAGE = '@fixture/synced-config'
 const ROW = 'fixture-synced-config'
@@ -40,7 +41,7 @@ it('renders volatile Config without secrets or ordinary fields and updates it in
   onTestFinished(() => rm(installed, { recursive: true, force: true }))
   await cp(FIXTURE, installed, { recursive: true })
   await mkdir(join(installed, 'node_modules', '@deepseek-ai'), { recursive: true })
-  await symlink(SCHEMASTERY, join(installed, 'node_modules', '@deepseek-ai', 'schemastery'), 'junction')
+  await symlink(SCHEMASTERY, join(installed, 'node_modules', ...SCHEMASTERY_PACKAGE.split('/')), 'junction')
   const scaffold = await launchWebScaffold({ profile: { packages: [{ dir: installed, enabled: true }] } })
   onTestFinished(() => scaffold.close())
   const browser = await chromium.launch()

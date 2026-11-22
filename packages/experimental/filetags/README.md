@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-Attach tags to files and directories anywhere on this machine and find them again by tag expression, such as `project and not archive`. Tags live in one central SQLite database under the Harness data directory, so no sidecar file is written next to any managed path. Four model tools expose the store: `filetags_tag`, `filetags_untag`, `filetags_search`, and `filetags_list`.
+Attach tags to files and directories anywhere on this machine and find them again by tag expression, such as `project and not archive`. Tags live in one central SQLite database under the Harness data directory, so no sidecar file is written next to any managed path. Four model tools expose the store: `filetags_tag`, `filetags_untag`, `filetags_search`, and `filetags_list`. The same store backs the `fileTags` Remote namespace, which the optional [right Sidebar tag panel](../client-ui-filetags/README.md) consumes.
 
 ## Table of Contents
 
@@ -24,7 +24,7 @@ Attach tags to files and directories anywhere on this machine and find them agai
 <a id="use-this-package"></a>
 ## Use this package
 
-Mount the plugin in a `cordis.yml` after `@deepseek-ai/dsh-tools`, `@deepseek-ai/dsh-tool-executor-native`, and `@deepseek-ai/dsh-system-prompt`. The plugin needs `ctx.tools`.
+Mount the plugin in a `cordis.yml` after `@deepseek-ai/dsh-tools`, `@deepseek-ai/dsh-tool-executor-native`, `@deepseek-ai/dsh-system-prompt`, and `@deepseek-ai/dsh-typert-registry`. The plugin provides `ctx.fileTags` and needs `ctx.tools` and `ctx.typert`; the [File tags bundle](../filetags-bundle/README.md) composes it with the panel for Web and Desktop.
 
 ```yaml
 - name: 'cordis:@deepseek-ai/dsh-filetags'
@@ -41,7 +41,7 @@ Paths passed to the tools must be absolute. A tag is one word without whitespace
 
 The database has three tables: `tags`, `entries` keyed by absolute path with the type, size, and modification time observed when tagged, and `entry_tags` linking the two. `src/schema.ts` opens the database with `PRAGMA user_version`; any other stored version is rejected rather than migrated. `src/query.ts` parses an expression with the precedence `not`, then `and`, then `or`, and compiles it to a boolean over `entries` whose tag names are bound parameters. `src/store.ts` owns writes; each tag or untag call runs in one `BEGIN IMMEDIATE` transaction, and untag removes entries and tags left without links.
 
-Search results are capped at 200 entries sorted by path. A path that is moved or deleted keeps its row; the store does not yet follow moves.
+Search results are capped at 200 entries sorted by path. A path that is moved or deleted keeps its row; the store does not yet follow moves. `src/types.ts` holds the browser-safe records and the two Remote failure codes (`filetags/invalid-argument` and `filetags/failed`); `src/index.ts` registers the four tools and the `@Remote` methods over one lazily opened handle, closing it with the plugin.
 
 <a id="model-experience"></a>
 ## Model Experience

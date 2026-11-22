@@ -1,0 +1,40 @@
+/* Tag panel: one column of filters above the result list, on the app's alias tokens. */
+.root { display: flex; flex-direction: column; gap: 8px; padding: 8px; font-size: 13px; color: var(--dsw-alias-label-primary); }
+.titleIcon { flex: none; }
+.input {
+  width: 100%; min-height: 30px; box-sizing: border-box; padding: 0 8px; font: inherit;
+  border: 0.5px solid var(--dsw-alias-border-l4); border-radius: var(--dsw-radius-md);
+  background: var(--dsw-alias-bg-base); color: var(--dsw-alias-label-primary);
+}
+.tagList { display: flex; flex-wrap: wrap; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.tagButton {
+  display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; font: inherit; cursor: pointer;
+  border: 0.5px solid var(--dsw-alias-border-l4); border-radius: 999px;
+  background: var(--dsw-alias-bg-base); color: var(--dsw-alias-label-secondary);
+}
+.tagActive { background: var(--dsw-alias-bg-l2); color: var(--dsw-alias-label-primary); border-color: var(--dsw-alias-border-l3); }
+.count { font-size: 12px; color: var(--dsw-alias-label-tertiary); }
+.expression { display: flex; flex-direction: column; gap: 4px; }
+.expressionLabel { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--dsw-alias-label-secondary); }
+.hint { margin: 0; font-size: 12px; line-height: 16px; color: var(--dsw-alias-label-tertiary); }
+.error { margin: 0; font-size: 12px; line-height: 16px; color: var(--dsw-alias-label-primary); }
+.empty { margin: 0; font-size: 13px; line-height: 18px; color: var(--dsw-alias-label-secondary); }
+.results { display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+.resultsHead { display: flex; align-items: center; gap: 8px; }
+.resultList { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.row { display: flex; flex-direction: column; gap: 6px; padding: 8px; border-radius: var(--dsw-radius-md); background: var(--dsw-alias-bg-l1); }
+.rowHead { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+.kind { flex: none; font-size: 11px; color: var(--dsw-alias-label-tertiary); }
+.path { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.chip {
+  display: inline-flex; align-items: center; gap: 2px; padding: 0 2px 0 8px;
+  border-radius: 999px; background: var(--dsw-alias-bg-l2); font-size: 12px;
+}
+.remove { border: 0; background: none; padding: 0 4px; font: inherit; cursor: pointer; color: var(--dsw-alias-label-tertiary); }
+.addRow { display: flex; gap: 4px; }
+.addButton {
+  flex: none; min-height: 28px; padding: 0 10px; font: inherit; cursor: pointer;
+  border: 0.5px solid var(--dsw-alias-border-l4); border-radius: var(--dsw-radius-md);
+  background: var(--dsw-alias-bg-base); color: var(--dsw-alias-label-primary);
+}

@@ -8,19 +8,7 @@
 import type { DatabaseSync } from 'node:sqlite'
 import { stat } from 'node:fs/promises'
 import { compileTagExpression } from './query.ts'
-
-/** One tagged path with its tags, sorted by name. */
-export interface TaggedEntry {
-  path: string
-  isDir: boolean
-  tags: string[]
-}
-
-/** One tag with the number of paths that carry it. */
-export interface TagSummary {
-  name: string
-  count: number
-}
+import type { TaggedEntry, TagSummary } from './types.ts'
 
 /** Tag names: non-empty, no whitespace or parentheses, and not a query keyword. */
 const TAG_NAME_RE = /^[^\s()]+$/
@@ -28,6 +16,9 @@ const RESERVED_TAG_NAMES = new Set(['and', 'or', 'not'])
 
 /** A tag name rejected before it reaches the database. */
 export class TagNameError extends Error {}
+
+/** A path rejected because the store keys entries by absolute path. */
+export class PathArgumentError extends Error {}
 
 /**
  * Validate a tag name before it reaches the database.
@@ -126,11 +117,12 @@ export class FiletagStore {
    * @returns tags sorted by name.
    */
   tags(): TagSummary[] {
-    return this.db.prepare(`
+    const rows = this.db.prepare(`
       SELECT t.name AS name, COUNT(et.entry_id) AS count
       FROM tags t JOIN entry_tags et ON et.tag_id = t.id
       GROUP BY t.id ORDER BY t.name
-    `).all() as unknown as TagSummary[]
+    `).all() as { name: string; count: number }[]
+    return rows.map(row => ({ name: row.name, count: row.count }))
   }
 
   /** Close the database handle. */

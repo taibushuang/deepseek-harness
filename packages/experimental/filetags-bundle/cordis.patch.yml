@@ -1,0 +1,7 @@
+- insert:
+    - id: filetags
+      name: '@deepseek-ai/dsh-filetags'
+      config:
+        path: !!js dshHomePath('data', 'filetags.db')
+    - id: client-ui-filetags
+      name: '@deepseek-ai/dsh-client-ui-filetags'

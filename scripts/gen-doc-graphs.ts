@@ -1064,6 +1064,13 @@ const SERVICE_ROLES: ServiceRole[] = [
     mode: 'service',
     note: 'Publishes the owner share-management operations as one Typert Remote namespace that the owner client face calls; every method delegates to the same operations the same-origin routes used.',
   },
+  {
+    key: 'fileTags',
+    pkg: 'experimental-filetags',
+    title: 'File tag store',
+    mode: 'service',
+    note: 'Owns the central tag database and the four tag tools; the right Sidebar panel reads and writes the same store through the generated Remote namespace.',
+  },
 ]
 
 function generatedHeader(title: string): string[] {

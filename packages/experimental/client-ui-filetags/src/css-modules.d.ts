@@ -1,0 +1,5 @@
+/** CSS Modules declarations for the panel's stylesheets. */
+declare module '*.module.css' {
+  const classes: Record<string, string>
+  export default classes
+}

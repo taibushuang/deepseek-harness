@@ -9,7 +9,7 @@ kind: "package-reference"
 
 ## 概述
 
-为机器上任意文件和目录添加标签，并通过标签表达式（例如 `project and not archive`）再次找到它们。标签保存在 Harness 数据目录下的一个中央 SQLite 数据库中，因此不会在任何被管理路径旁写入边车文件。四个模型工具暴露该存储：`filetags_tag`、`filetags_untag`、`filetags_search` 和 `filetags_list`。
+为机器上任意文件和目录添加标签，并通过标签表达式（例如 `project and not archive`）再次找到它们。标签保存在 Harness 数据目录下的一个中央 SQLite 数据库中，因此不会在任何被管理路径旁写入边车文件。四个模型工具暴露该存储：`filetags_tag`、`filetags_untag`、`filetags_search` 和 `filetags_list`。同一存储还支撑 `fileTags` 远程命名空间，供可选的[右侧栏标签面板](../client-ui-filetags/README.zh.md)使用。
 
 ## 目录
 
@@ -24,7 +24,7 @@ kind: "package-reference"
 <a id="use-this-package"></a>
 ## 使用此包
 
-在 `cordis.yml` 中，把插件挂载在 `@deepseek-ai/dsh-tools`、`@deepseek-ai/dsh-tool-executor-native` 与 `@deepseek-ai/dsh-system-prompt` 之后。插件需要 `ctx.tools`。
+在 `cordis.yml` 中，把插件挂载在 `@deepseek-ai/dsh-tools`、`@deepseek-ai/dsh-tool-executor-native`、`@deepseek-ai/dsh-system-prompt` 与 `@deepseek-ai/dsh-typert-registry` 之后。插件提供 `ctx.fileTags`，并需要 `ctx.tools` 与 `ctx.typert`；[文件标签 bundle](../filetags-bundle/README.zh.md) 会把它与面板一起组合，供 Web 与 Desktop 使用。
 
 ```yaml
 - name: 'cordis:@deepseek-ai/dsh-filetags'
@@ -41,7 +41,7 @@ kind: "package-reference"
 
 数据库有三张表：`tags`；以绝对路径为键的 `entries`，记录打标签时观察到的类型、大小和修改时间；以及连接两者的 `entry_tags`。`src/schema.ts` 通过 `PRAGMA user_version` 打开数据库，其他已存储版本会被拒绝，而不是迁移。`src/query.ts` 按 `not`、`and`、`or` 的优先级解析表达式，并编译为基于 `entries` 的布尔条件，其中标签名为绑定参数。`src/store.ts` 负责写入；每次打标签或取消标签都在一个 `BEGIN IMMEDIATE` 事务中运行，取消标签会删除不再有关联的条目和标签。
 
-搜索结果最多返回 200 条，按路径排序。被移动或删除的路径会保留其记录；存储层尚不跟随移动。
+搜索结果最多返回 200 条，按路径排序。被移动或删除的路径会保留其记录；存储层尚不跟随移动。`src/types.ts` 存放浏览器安全的记录与两个远程失败码（`filetags/invalid-argument` 与 `filetags/failed`）；`src/index.ts` 在同一个惰性打开的句柄上注册四个工具与 `@Remote` 方法，并随插件关闭它。
 
 <a id="model-experience"></a>
 ## 模型体验

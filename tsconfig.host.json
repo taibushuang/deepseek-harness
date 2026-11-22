@@ -452,6 +452,7 @@
     { "path": "./packages/experimental/worktree" },
     { "path": "./packages/experimental/tool-worktree" },
     { "path": "./packages/experimental/filetags" },
+    { "path": "./packages/experimental/filetags-bundle" },
     { "path": "./packages/experimental/forge" },
     { "path": "./packages/experimental/forge-github" },
     { "path": "./packages/experimental/forge-gitlab" },

@@ -1,6 +1,7 @@
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { DatabaseSync } from 'node:sqlite'
 import { afterEach, describe, expect, it } from 'vitest'
 import { compileTagExpression, TagExpressionError } from '../src/query.ts'
 import { openFiletagsDatabase } from '../src/schema.ts'
@@ -20,10 +21,11 @@ afterEach(async () => {
  * Open a store on a file under a fresh temporary directory, so paths in it exist.
  * @returns the store and the temporary root.
  */
-async function open(): Promise<{ db: FiletagStore; base: string }> {
+async function open(): Promise<{ db: FiletagStore; base: string; path: string }> {
   root = await mkdtemp(join(tmpdir(), 'dsh-filetags-store-'))
-  store = new FiletagStore(await openFiletagsDatabase(join(root, 'filetags.db')))
-  return { db: store, base: root }
+  const path = join(root, 'filetags.db')
+  store = new FiletagStore(await openFiletagsDatabase(path))
+  return { db: store, base: root, path }
 }
 
 describe('compileTagExpression precedence', () => {
@@ -33,9 +35,10 @@ describe('compileTagExpression precedence', () => {
       + '(EXISTS (SELECT 1 FROM entry_tags et JOIN tags t ON t.id = et.tag_id WHERE et.entry_id = entries.id AND t.name = ?) AND NOT (EXISTS (SELECT 1 FROM entry_tags et JOIN tags t ON t.id = et.tag_id WHERE et.entry_id = entries.id AND t.name = ?)))',
     )
     expect(compileTagExpression('a or b and not c').params).toEqual(['a', 'b', 'c'])
+    expect(compileTagExpression('(a or b) and not (c)').params).toEqual(['a', 'b', 'c'])
   })
 
-  it.each(['', 'and', 'a and', '(a', 'a)', 'a b', 'not'])('rejects malformed expression %j', (expression) => {
+  it.each(['', 'and', 'a and', '(a', 'a)', 'a b', 'not', '(a b)', 'a and )'])('rejects malformed expression %j', (expression) => {
     expect(() => compileTagExpression(expression)).toThrow(TagExpressionError)
   })
 })
@@ -61,6 +64,18 @@ describe('FiletagStore', () => {
     expect(db.untag([file], ['draft'])).toBe(1)
     expect(db.tags()).toEqual([{ name: 'work', count: 1 }])
     expect(db.untag([file], ['work'])).toBe(1)
+    expect(db.tags()).toEqual([])
+    expect(db.entry(file)).toBeUndefined()
+  })
+
+  it('rolls the whole call back when a write inside the transaction fails', async () => {
+    const { db, base, path } = await open()
+    const file = join(base, 'a.txt')
+    await writeFile(file, 'x')
+    const raw = new DatabaseSync(path)
+    raw.exec("CREATE TRIGGER fail_entry BEFORE INSERT ON entries BEGIN SELECT RAISE(ABORT, 'blocked'); END")
+    raw.close()
+    await expect(db.tag([file], ['work'])).rejects.toThrow('blocked')
     expect(db.tags()).toEqual([])
     expect(db.entry(file)).toBeUndefined()
   })

@@ -25,6 +25,7 @@ import { OpenInAppController } from './controller.ts'
 import { registerSessionOpenWith } from './session-open-with.ts'
 import { OpenInAppAction, type OpenInAppActionInjected } from './OpenInAppAction.tsx'
 import { OpenInAppPathController } from './open-path.ts'
+import { OpenInAppService } from './service.ts'
 import { OpenPathAction, type OpenPathInjected } from './OpenPathAction.tsx'
 import { FileRouteAction } from './FileRouteAction.tsx'
 import { OpenPathEmptyAction } from './OpenPathEmptyAction.tsx'
@@ -45,6 +46,13 @@ export type { OpenInAppOutcome, OpenInAppPathFailure } from './outcome.ts'
 export type { OpenPathActionProps, OpenPathInjected } from './OpenPathAction.tsx'
 export type { OpenPathEmptyActionProps } from './OpenPathEmptyAction.tsx'
 
+declare module '@deepseek-ai/cordis' {
+  interface Context {
+    /** Native path opening shared with panels that are not file or document seats. */
+    openInApp: OpenInAppService
+  }
+}
+
 /** Required services: sessions, layout selection, the slot registry, copy, Remote calls, and shortcuts. */
 export const inject = ['contextMenus', 'sidebarRight', 'sidebarRightTabs', 'sessions', 'slots', 'locale', 'remote', 'remote.session', 'remote.workspaceFiles', 'shortcuts', 'layout']
 
@@ -58,6 +66,7 @@ export function apply(ctx: ClientContext): void {
   void controller.load()
   const paths = new OpenInAppPathController(ctx.remote)
   ctx.effect(() => () => { paths.dispose() }, 'open-in-app: association refreshes')
+  ctx.provide('openInApp', new OpenInAppService(paths))
   ctx.effect(() => ctx.locale.register(NS, { zh, en, ja, es, fr, de, ru, pt }), 'open-in-app: dictionaries')
   const t = ctx.locale.bind(NS)
   // Keep operation feedback visible after its initiating panel closes.

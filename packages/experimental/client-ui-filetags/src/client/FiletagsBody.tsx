@@ -32,6 +32,8 @@ type RowProps = {
   readonly t: TranslateNS<typeof NS>
   readonly onAdd: (names: readonly string[]) => Promise<boolean>
   readonly onRemove: (name: string) => Promise<boolean>
+  /** Native open, present only while the Host desktop answers. */
+  readonly onOpen?: (() => Promise<boolean>) | undefined
 }
 
 /**
@@ -39,7 +41,7 @@ type RowProps = {
  * @param props - the entry, copy, and write callbacks.
  * @returns the row.
  */
-function ResultRow({ entry, t, onAdd, onRemove }: RowProps): ReactNode {
+function ResultRow({ entry, t, onAdd, onRemove, onOpen }: RowProps): ReactNode {
   const [draft, setDraft] = useState('')
   const submit = (): void => {
     const names = tagNamesOf(draft)
@@ -51,6 +53,9 @@ function ResultRow({ entry, t, onAdd, onRemove }: RowProps): ReactNode {
       <div className={css.rowHead}>
         <span className={css.kind}>{entry.isDir ? t('row.dir') : t('row.file')}</span>
         <code className={css.path} title={entry.path}>{entry.path}</code>
+        {onOpen === undefined ? null : (
+          <button type="button" className={css.openButton} onClick={() => { void onOpen() }}>{t('row.open')}</button>
+        )}
       </div>
       <ul className={css.chips}>
         {entry.tags.map(name => (
@@ -97,6 +102,7 @@ export function TagPanel({ t, face }: TagPanelProps): ReactNode {
   const [pathQuery, setPathQuery] = useState('')
   const [error, setError] = useState<string | undefined>(undefined)
   const [loading, setLoading] = useState(false)
+  const [canOpen, setCanOpen] = useState(false)
   const [generation, setGeneration] = useState(0)
 
   useEffect(() => {
@@ -111,6 +117,19 @@ export function TagPanel({ t, face }: TagPanelProps): ReactNode {
     })()
     return () => { controller.abort() }
   }, [listTags, t, generation])
+
+  useEffect(() => {
+    const controller = new AbortController()
+    void (async () => {
+      try {
+        const answer = await face.canOpen(controller.signal)
+        if (!controller.signal.aborted) setCanOpen(answer)
+      } catch {
+        if (!controller.signal.aborted) setCanOpen(false)
+      }
+    })()
+    return () => { controller.abort() }
+  }, [face])
 
   useEffect(() => {
     const text = expression.trim()
@@ -158,6 +177,17 @@ export function TagPanel({ t, face }: TagPanelProps): ReactNode {
       return true
     } catch (cause) {
       setError(invalidArgument(cause) ? t('error.tagName') : t('error.write'))
+      return false
+    }
+  }
+
+  const openPath = async (path: string): Promise<boolean> => {
+    try {
+      await face.open(path, new AbortController().signal)
+      setError(undefined)
+      return true
+    } catch {
+      setError(t('error.open'))
       return false
     }
   }
@@ -221,6 +251,7 @@ export function TagPanel({ t, face }: TagPanelProps): ReactNode {
                 key={entry.path} entry={entry} t={t}
                 onAdd={names => write(() => tag(entry.path, names, new AbortController().signal))}
                 onRemove={name => write(() => untag(entry.path, name, new AbortController().signal))}
+                onOpen={canOpen ? () => openPath(entry.path) : undefined}
               />
             ))}
           </ul>

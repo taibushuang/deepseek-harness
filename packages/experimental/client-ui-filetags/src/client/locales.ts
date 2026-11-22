@@ -20,11 +20,13 @@ export const en = {
   'error.load': 'The tags could not be read.',
   'error.write': 'The tag change failed.',
   'error.tagName': 'Use one word per tag without spaces or parentheses.',
+  'error.open': 'The path could not be opened in its desktop application.',
   'row.addPlaceholder': 'Add a tag',
   'row.add': 'Add',
   'row.remove': 'Remove {tag}',
   'row.dir': 'Folder',
   'row.file': 'File',
+  'row.open': 'Open',
 } satisfies Record<string, string>
 
 /** Chinese dictionary, checked against the English keys. */
@@ -44,11 +46,13 @@ export const zh = {
   'error.load': '无法读取标签。',
   'error.write': '标签修改失败。',
   'error.tagName': '每个标签只能是一个词，不能包含空格或括号。',
+  'error.open': '无法在桌面应用中打开该路径。',
   'row.addPlaceholder': '添加标签',
   'row.add': '添加',
   'row.remove': '移除 {tag}',
   'row.dir': '文件夹',
   'row.file': '文件',
+  'row.open': '打开',
 } satisfies Record<keyof typeof en, string>
 
 /** Japanese dictionary, checked against the English keys. */
@@ -68,11 +72,13 @@ export const ja = {
   'error.load': 'タグを読み取れませんでした。',
   'error.write': 'タグを変更できませんでした。',
   'error.tagName': 'タグは空白や括弧を含まない 1 語にしてください。',
+  'error.open': 'デスクトップアプリでパスを開けませんでした。',
   'row.addPlaceholder': 'タグを追加',
   'row.add': '追加',
   'row.remove': '{tag} を削除',
   'row.dir': 'フォルダー',
   'row.file': 'ファイル',
+  'row.open': '開く',
 } satisfies Record<keyof typeof en, string>
 
 /** Spanish dictionary, checked against the English keys. */
@@ -92,11 +98,13 @@ export const es = {
   'error.load': 'No se pudieron leer las etiquetas.',
   'error.write': 'No se pudo cambiar la etiqueta.',
   'error.tagName': 'Usa una sola palabra por etiqueta, sin espacios ni paréntesis.',
+  'error.open': 'No se pudo abrir la ruta en su aplicación de escritorio.',
   'row.addPlaceholder': 'Añadir una etiqueta',
   'row.add': 'Añadir',
   'row.remove': 'Quitar {tag}',
   'row.dir': 'Carpeta',
   'row.file': 'Archivo',
+  'row.open': 'Abrir',
 } satisfies Record<keyof typeof en, string>
 
 /** French dictionary, checked against the English keys. */
@@ -116,11 +124,13 @@ export const fr = {
   'error.load': 'Les étiquettes n’ont pas pu être lues.',
   'error.write': 'La modification de l’étiquette a échoué.',
   'error.tagName': 'Utilisez un seul mot par étiquette, sans espaces ni parenthèses.',
+  'error.open': 'Le chemin n’a pas pu être ouvert dans son application de bureau.',
   'row.addPlaceholder': 'Ajouter une étiquette',
   'row.add': 'Ajouter',
   'row.remove': 'Retirer {tag}',
   'row.dir': 'Dossier',
   'row.file': 'Fichier',
+  'row.open': 'Ouvrir',
 } satisfies Record<keyof typeof en, string>
 
 /** German dictionary, checked against the English keys. */
@@ -140,11 +150,13 @@ export const de = {
   'error.load': 'Die Tags konnten nicht gelesen werden.',
   'error.write': 'Die Tag-Änderung ist fehlgeschlagen.',
   'error.tagName': 'Verwende ein Wort pro Tag, ohne Leerzeichen oder Klammern.',
+  'error.open': 'Der Pfad konnte nicht in seiner Desktop-Anwendung geöffnet werden.',
   'row.addPlaceholder': 'Tag hinzufügen',
   'row.add': 'Hinzufügen',
   'row.remove': '{tag} entfernen',
   'row.dir': 'Ordner',
   'row.file': 'Datei',
+  'row.open': 'Öffnen',
 } satisfies Record<keyof typeof en, string>
 
 /** Russian dictionary, checked against the English keys. */
@@ -164,11 +176,13 @@ export const ru = {
   'error.load': 'Не удалось прочитать теги.',
   'error.write': 'Не удалось изменить тег.',
   'error.tagName': 'Используйте одно слово на тег, без пробелов и скобок.',
+  'error.open': 'Не удалось открыть путь в настольном приложении.',
   'row.addPlaceholder': 'Добавить тег',
   'row.add': 'Добавить',
   'row.remove': 'Удалить {tag}',
   'row.dir': 'Папка',
   'row.file': 'Файл',
+  'row.open': 'Открыть',
 } satisfies Record<keyof typeof en, string>
 
 /** Portuguese dictionary, checked against the English keys. */
@@ -188,11 +202,13 @@ export const pt = {
   'error.load': 'Não foi possível ler as etiquetas.',
   'error.write': 'Não foi possível alterar a etiqueta.',
   'error.tagName': 'Use uma palavra por etiqueta, sem espaços ou parênteses.',
+  'error.open': 'Não foi possível abrir o caminho no aplicativo de desktop.',
   'row.addPlaceholder': 'Adicionar uma etiqueta',
   'row.add': 'Adicionar',
   'row.remove': 'Remover {tag}',
   'row.dir': 'Pasta',
   'row.file': 'Arquivo',
+  'row.open': 'Abrir',
 } satisfies Record<keyof typeof en, string>
 
 /** Dictionary keys this namespace declares. */

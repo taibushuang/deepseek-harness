@@ -63,6 +63,8 @@ kind: "package-reference"
 
 目录和文件适配器把应用信息与操作交给 [`OpenTargetButton`](src/client/OpenTargetButton.tsx)，由它统一管理菜单顺序、默认标记、图标和尺寸。注入的回调将结果交给本功能在 `shell.overlay` 中持有的唯一 toast，因此切换会话或关闭发起操作的预览不会丢失结果。文件标题栏和空态共用 `FileOpenTarget`，`OpenPathInjected.applications` 通过 [`open-path.ts`](src/client/open-path.ts) 查询 `session.workspacePathApplications`。同一控制器按关联类别保存本页面的回答，同一时间只运行一次后台刷新（下一次打开菜单或插件卸载会取消尚未完成的刷新），只在回答变化时发布新快照。文件菜单观察该快照；只有本文件类型的回答变化时，才基于本次打开时验证的路径同步重新解析，因此右键菜单注册表保留其他各项，只有应用这一项原地变化。尚无记录的类型会让文件菜单项等到这次刷新结束、满 300 毫秒或菜单关闭；注册表在所有菜单项都就绪后才打开菜单，所以整个菜单都会等待。打开操作使用 `session.openWorkspacePath`，Host 在启动前重新验证指定的关联应用。`FileRouteAction` 通过 `deliverables.file.actions` 和 `deliverables.review.file.actions` 为交付卡片和变更对比页提供同一控件，其认证路由保留会话文件校验。目录适配器继续使用已有的应用列表路由，文件查询失败或不可用时无需增加平台专用的界面实现。
 
+`ctx.openInApp` 把该页面生命周期的控制器提供给文件与文档座位之外的面板：`available()` 读取每页一次的桌面可用性回答，`open(path)` 与 `reveal(path)` 通过 `session.openWorkspacePath` 执行。右侧栏标签面板是当前消费者，在没有桌面回答时隐藏其打开动作。
+
 </details>
 
 -----

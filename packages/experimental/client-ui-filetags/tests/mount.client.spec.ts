@@ -44,6 +44,10 @@ async function fixture(
   const tag = vi.fn(async (): Promise<RemoteResult<number>> => ({ ok: true, value: 1 }))
   const untag = vi.fn(async (): Promise<RemoteResult<number>> => ({ ok: true, value: 1 }))
   ctx.provide('remote.fileTags', { listTags, search, tag, untag } as never)
+  ctx.provide('openInApp', {
+    available: async () => true,
+    open: async () => ({ kind: 'opened' }),
+  } as never)
   ctx.provide('locale', new LocaleRuntime(ctx))
   await ctx.plugin(SlotRegistry)
   ctx.slots.register({ name: 'root', children: {
@@ -66,7 +70,11 @@ it('mounts the Remote, registers the tab type and seats, and withdraws both on d
   expect(value.keys('sidebar.right.pane.tab')).toEqual([FILETAGS_ID])
 
   const [entry] = value.ctx.slots.entries('sidebar.right.pane.tab')
-  expect(entry?.inject === undefined ? undefined : (entry.inject as () => unknown)()).toMatchObject({ face: expect.any(Object) })
+  const inject = entry?.inject as (() => { face: { canOpen(signal: AbortSignal): Promise<boolean> } }) | undefined
+  if (inject === undefined) throw new Error('the panel registered no inject face')
+  const injected = inject()
+  expect(injected).toMatchObject({ face: expect.any(Object) })
+  expect(await injected.face.canOpen(new AbortController().signal)).toBe(true)
 
   await dispose()
   expect(value.definitions).toHaveLength(0)
@@ -119,6 +127,15 @@ it('unwraps successful Remote results and rethrows failures', async () => {
   await expect(failing.listTags(signal)).rejects.toBe(failure)
   await expect(failing.search('work', signal)).rejects.toBe(failure)
   await expect(failing.untag('/tmp/a', 'work', signal)).rejects.toBe(failure)
+  const opening = createFace(namespace, { available: async () => true, open: async () => ({ kind: 'opened' }) })
+  const refused = createFace(namespace, { available: async () => true, open: async () => ({ kind: 'failed' }) })
+  const skipped = createFace(namespace, { available: async () => true, open: async () => ({ kind: 'skipped' }) })
+  expect(await face.canOpen(signal)).toBe(false)
+  await expect(face.open('/tmp/a', signal)).rejects.toThrow('no desktop application surface')
+  expect(await opening.canOpen(signal)).toBe(true)
+  await opening.open('/tmp/a', signal)
+  await expect(refused.open('/tmp/a', signal)).rejects.toThrow('the path could not be opened')
+  await skipped.open('/tmp/a', signal)
   const writing = createFace({ ...namespace, tag: vi.fn(async () => ({ ok: true as const, value: 1 })) })
   await writing.tag('/tmp/a', ['work'], signal)
   expect(face.invalidArgument(failure)).toBe(true)

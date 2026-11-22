@@ -18,4 +18,16 @@ export interface FiletagsFace {
   untag(path: string, name: string, signal: AbortSignal): Promise<void>
   /** Whether a failure means the caller supplied a malformed path, tag, or expression. */
   invalidArgument(error: unknown): boolean
+  /** Whether this page can hand a path to a Desktop application. */
+  canOpen(signal: AbortSignal): Promise<boolean>
+  /** Open one absolute path in its Desktop application. */
+  open(path: string, signal: AbortSignal): Promise<void>
+}
+
+/** The native opening surface the panel borrows when the product provides one. */
+export interface OpenInAppCapability {
+  /** Whether a Host desktop answered for this page. */
+  available(): Promise<boolean>
+  /** Open one absolute Host path in its default application. */
+  open(path: string): Promise<{ readonly kind: string }>
 }

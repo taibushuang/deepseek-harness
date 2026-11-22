@@ -34,6 +34,8 @@ function face(overrides: Partial<FiletagsFace> = {}): FiletagsFace {
     tag: vi.fn(async () => undefined),
     untag: vi.fn(async () => undefined),
     invalidArgument: invalid,
+    canOpen: vi.fn(async () => false),
+    open: vi.fn(async () => undefined),
     ...overrides,
   }
 }
@@ -223,5 +225,53 @@ describe('TagPanel cancellation and write failures', () => {
     const row = (await screen.findByText('/tmp/note.md')).closest('li')!
     fireEvent.submit(within(row).getByLabelText(t('row.addPlaceholder')).closest('form')!)
     expect(value.tag).not.toHaveBeenCalled()
+  })
+})
+
+describe('TagPanel desktop opening', () => {
+  it('shows Open only after a Host desktop answers and opens the row path', async () => {
+    const value = panel(face({ canOpen: vi.fn(async () => true) }))
+    fireEvent.click(await screen.findByRole('button', { name: /^project/ }))
+    const row = (await screen.findByText('/tmp/note.md')).closest('li')!
+    const open = within(row).getByRole('button', { name: t('row.open') })
+    fireEvent.click(open)
+    await waitFor(() => { expect(value.open).toHaveBeenCalledWith('/tmp/note.md', expect.any(AbortSignal)) })
+    expect(screen.queryByRole('alert')).toBeNull()
+  })
+
+  it('keeps the action hidden when no desktop answers', async () => {
+    panel(face())
+    fireEvent.click(await screen.findByRole('button', { name: /^project/ }))
+    const row = (await screen.findByText('/tmp/note.md')).closest('li')!
+    await waitFor(() => { expect(within(row).queryByRole('button', { name: t('row.open') })).toBeNull() })
+  })
+
+  it('reports an open the desktop refused', async () => {
+    panel(face({
+      canOpen: vi.fn(async () => true),
+      open: vi.fn(async () => { throw new Error('refused') }),
+    }))
+    fireEvent.click(await screen.findByRole('button', { name: /^project/ }))
+    const row = (await screen.findByText('/tmp/note.md')).closest('li')!
+    fireEvent.click(within(row).getByRole('button', { name: t('row.open') }))
+    await waitFor(() => { expect(screen.getByRole('alert').textContent).toBe(t('error.open')) })
+  })
+})
+
+describe('TagPanel desktop availability failures', () => {
+  it('keeps the action hidden when the desktop query fails', async () => {
+    panel(face({ canOpen: vi.fn(async () => { throw new Error('offline') }) }))
+    fireEvent.click(await screen.findByRole('button', { name: /^project/ }))
+    const row = (await screen.findByText('/tmp/note.md')).closest('li')!
+    await waitFor(() => { expect(within(row).queryByRole('button', { name: t('row.open') })).toBeNull() })
+  })
+
+  it('ignores a desktop answer that arrives after the panel unloads', async () => {
+    const pending = deferred<boolean>()
+    panel(face({ canOpen: vi.fn(() => pending.promise) }))
+    cleanup()
+    pending.reject(new Error('offline'))
+    await Promise.resolve()
+    await Promise.resolve()
   })
 })

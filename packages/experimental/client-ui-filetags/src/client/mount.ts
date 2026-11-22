@@ -10,9 +10,10 @@ import type {} from '@deepseek-ai/dsh-api-remotes/client'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
 import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
 import type {} from '@deepseek-ai/dsh-client-ui-sidebar-right/client'
+import type {} from '@deepseek-ai/dsh-client-ui-open-in-app/client'
 import type { RemoteResult, TypertRemoteContribution } from '@deepseek-ai/dsh-typert-protocol'
 import type { SearchRequest, TaggedEntry, TagRequest, TagSummary } from '@deepseek-ai/dsh-filetags/types'
-import type { FiletagsFace } from './face.ts'
+import type { FiletagsFace, OpenInAppCapability } from './face.ts'
 import { TagPanel } from './FiletagsBody.tsx'
 import { filetagsDefinition, FILETAGS_ID } from './definition.ts'
 import { de, en, es, fr, ja, NS, pt, ru, zh } from './locales.ts'
@@ -44,9 +45,10 @@ export interface FileTagsNamespace {
 /**
  * Bind the panel's face to the generated namespace, unwrapping each result.
  * @param remote - the mounted `fileTags` namespace.
+ * @param openInApp - the native opening surface when the product mounts one.
  * @returns the tag operations the panel body calls.
  */
-export function createFace(remote: FileTagsNamespace): FiletagsFace {
+export function createFace(remote: FileTagsNamespace, openInApp?: OpenInAppCapability): FiletagsFace {
   return {
     listTags: async (signal) => {
       const result = await remote.listTags(signal)
@@ -67,6 +69,17 @@ export function createFace(remote: FileTagsNamespace): FiletagsFace {
       if (!result.ok) throw result.error
     },
     invalidArgument,
+    canOpen: async (signal) => {
+      signal.throwIfAborted()
+      if (openInApp === undefined) return false
+      return await openInApp.available()
+    },
+    open: async (path, signal) => {
+      signal.throwIfAborted()
+      if (openInApp === undefined) throw new Error('no desktop application surface')
+      const outcome = await openInApp.open(path)
+      if (outcome.kind === 'failed') throw new Error('the path could not be opened')
+    },
   }
 }
 
@@ -76,7 +89,7 @@ export function createFace(remote: FileTagsNamespace): FiletagsFace {
  * @param lifetime - aborts panel reads when the plugin unloads.
  */
 function registerPanel(ctx: Context, lifetime: AbortController): void {
-  const face = createFace(ctx.remote.fileTags)
+  const face = createFace(ctx.remote.fileTags, ctx.get('openInApp'))
   ctx.effect(() => () => { lifetime.abort() }, 'filetags-ui: panel reads')
   ctx.effect(() => ctx.locale.register(NS, { en, zh, ja, es, fr, de, ru, pt }), 'filetags-ui: dictionaries')
   ctx.effect(() => ctx.sidebarRightTabs.register(filetagsDefinition(ctx.locale.bind(NS))), 'filetags-ui: tab type')

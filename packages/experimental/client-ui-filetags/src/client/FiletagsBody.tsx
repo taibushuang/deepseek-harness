@@ -4,7 +4,7 @@
  * @module @deepseek-ai/dsh-client-ui-filetags/FiletagsBody
  */
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { TranslateNS } from '@deepseek-ai/dsh-client-locale/client'
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
@@ -102,6 +102,10 @@ export function TagPanel({ t, face }: TagPanelProps): ReactNode {
   const [pathQuery, setPathQuery] = useState('')
   const [error, setError] = useState<string | undefined>(undefined)
   const [loading, setLoading] = useState(false)
+  // The slot synthesizes `t` per render; effects read the current copy so a new
+  // function identity cannot abort their in-flight request and strand the panel.
+  const tRef = useRef(t)
+  tRef.current = t
   const [canOpen, setCanOpen] = useState(false)
   const [generation, setGeneration] = useState(0)
 
@@ -112,11 +116,11 @@ export function TagPanel({ t, face }: TagPanelProps): ReactNode {
         const found = await listTags(controller.signal)
         if (!controller.signal.aborted) setTags(found)
       } catch {
-        if (!controller.signal.aborted) setError(t('error.load'))
+        if (!controller.signal.aborted) setError(tRef.current('error.load'))
       }
     })()
     return () => { controller.abort() }
-  }, [listTags, t, generation])
+  }, [listTags, generation])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -149,7 +153,7 @@ export function TagPanel({ t, face }: TagPanelProps): ReactNode {
           setError(undefined)
         } catch (cause) {
           if (controller.signal.aborted) return
-          setError(invalidArgument(cause) ? t('expression.invalid') : t('error.load'))
+          setError(invalidArgument(cause) ? tRef.current('expression.invalid') : tRef.current('error.load'))
         } finally {
           if (!controller.signal.aborted) setLoading(false)
         }
@@ -159,7 +163,7 @@ export function TagPanel({ t, face }: TagPanelProps): ReactNode {
       controller.abort()
       clearTimeout(timer)
     }
-  }, [expression, search, invalidArgument, t, generation])
+  }, [expression, search, invalidArgument, generation])
 
   const visibleTags = useMemo(() => filterTags(tags, tagQuery), [tags, tagQuery])
   const visibleEntries = useMemo(() => filterEntries(entries, pathQuery), [entries, pathQuery])

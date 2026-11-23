@@ -6,6 +6,7 @@ export const NS = 'filetags'
 /** English copy and key source. */
 export const en = {
   'type.label': 'Tags',
+  'guide.description': 'Browse tags, filter them, or find paths by tag expression.',
   'tags.filterPlaceholder': 'Filter tags',
   'expression.label': 'Tag expression',
   'expression.placeholder': 'project and not archive',
@@ -32,6 +33,7 @@ export const en = {
 /** Chinese dictionary, checked against the English keys. */
 export const zh = {
   'type.label': '标签',
+  'guide.description': '浏览和过滤标签，或按标签表达式查找路径。',
   'tags.filterPlaceholder': '过滤标签',
   'expression.label': '标签表达式',
   'expression.placeholder': 'project and not archive',
@@ -58,6 +60,7 @@ export const zh = {
 /** Japanese dictionary, checked against the English keys. */
 export const ja = {
   'type.label': 'タグ',
+  'guide.description': 'タグを閲覧・絞り込みし、タグ式でパスを検索します。',
   'tags.filterPlaceholder': 'タグを絞り込む',
   'expression.label': 'タグ式',
   'expression.placeholder': 'project and not archive',
@@ -84,6 +87,7 @@ export const ja = {
 /** Spanish dictionary, checked against the English keys. */
 export const es = {
   'type.label': 'Etiquetas',
+  'guide.description': 'Explora y filtra etiquetas, o busca rutas por expresión de etiquetas.',
   'tags.filterPlaceholder': 'Filtrar etiquetas',
   'expression.label': 'Expresión de etiquetas',
   'expression.placeholder': 'project and not archive',
@@ -110,6 +114,7 @@ export const es = {
 /** French dictionary, checked against the English keys. */
 export const fr = {
   'type.label': 'Étiquettes',
+  'guide.description': 'Parcourez et filtrez les étiquettes, ou recherchez des chemins par expression d’étiquettes.',
   'tags.filterPlaceholder': 'Filtrer les étiquettes',
   'expression.label': 'Expression d’étiquettes',
   'expression.placeholder': 'project and not archive',
@@ -136,6 +141,7 @@ export const fr = {
 /** German dictionary, checked against the English keys. */
 export const de = {
   'type.label': 'Tags',
+  'guide.description': 'Durchsuche und filtere Tags oder finde Pfade über einen Tag-Ausdruck.',
   'tags.filterPlaceholder': 'Tags filtern',
   'expression.label': 'Tag-Ausdruck',
   'expression.placeholder': 'project and not archive',
@@ -162,6 +168,7 @@ export const de = {
 /** Russian dictionary, checked against the English keys. */
 export const ru = {
   'type.label': 'Теги',
+  'guide.description': 'Просматривайте и фильтруйте теги или ищите пути по выражению тегов.',
   'tags.filterPlaceholder': 'Фильтр тегов',
   'expression.label': 'Выражение тегов',
   'expression.placeholder': 'project and not archive',
@@ -188,6 +195,7 @@ export const ru = {
 /** Portuguese dictionary, checked against the English keys. */
 export const pt = {
   'type.label': 'Etiquetas',
+  'guide.description': 'Explore e filtre etiquetas, ou pesquise caminhos por expressão de etiquetas.',
   'tags.filterPlaceholder': 'Filtrar etiquetas',
   'expression.label': 'Expressão de etiquetas',
   'expression.placeholder': 'project and not archive',

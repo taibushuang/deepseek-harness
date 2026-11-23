@@ -67,6 +67,8 @@ it('mounts the Remote, registers the tab type and seats, and withdraws both on d
   expect(value.definitions).toHaveLength(1)
   expect(value.definitions[0]).toMatchObject({ id: FILETAGS_ID, kind: FILETAGS_KIND })
   expect(value.definitions[0]!.title('')).toBe('Tags')
+  expect(value.definitions[0]!.guide?.[0]?.title()).toBe('Tags')
+  expect(value.definitions[0]!.guide?.[0]?.description?.()).toContain('Browse tags')
   expect(value.keys('sidebar.right.pane.tab')).toEqual([FILETAGS_ID])
 
   const [entry] = value.ctx.slots.entries('sidebar.right.pane.tab')

@@ -275,3 +275,25 @@ describe('TagPanel desktop availability failures', () => {
     await Promise.resolve()
   })
 })
+
+describe('TagPanel copy identity', () => {
+  it('keeps a tag list that resolves after a rerender with new copy', async () => {
+    const pending = deferred<readonly TagSummary[]>()
+    const value = face({ listTags: vi.fn(() => pending.promise) })
+    const { rerender } = render(createElement(TagPanel, { t, face: value }))
+    rerender(createElement(TagPanel, { t: makeTranslate(zh), face: value }))
+    pending.resolve(TAGS)
+    expect(await screen.findByText('project')).toBeDefined()
+  })
+
+  it('keeps a search result that resolves after a rerender with new copy', async () => {
+    const pending = deferred<readonly TaggedEntry[]>()
+    const value = face({ search: vi.fn(() => pending.promise) })
+    const { rerender } = render(createElement(TagPanel, { t, face: value }))
+    fireEvent.change(await screen.findByLabelText(t('expression.label')), { target: { value: 'project' } })
+    await pastDebounce()
+    rerender(createElement(TagPanel, { t: makeTranslate(zh), face: value }))
+    pending.resolve(ENTRIES)
+    expect(await screen.findByText('/tmp/note.md')).toBeDefined()
+  })
+})

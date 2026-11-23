@@ -25,5 +25,11 @@ export function filetagsDefinition(t: TranslateNS<'filetags'>): SidebarRightTabD
     kind: FILETAGS_KIND,
     priority: 'builtin',
     title: () => t('type.label'),
+    guide: [{
+      id: 'tags',
+      order: 40,
+      title: () => t('type.label'),
+      description: () => t('guide.description'),
+    }],
   }
 }

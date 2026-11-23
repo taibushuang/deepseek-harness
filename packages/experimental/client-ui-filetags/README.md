@@ -24,7 +24,7 @@ The right Sidebar's Tags page. It lists every tag with its path count, filters t
 <a id="use-this-package"></a>
 ## Use this package
 
-Enable the [File tags bundle](../filetags-bundle/README.md) on the Web or Desktop Plugins page. The bundle mounts this panel together with the Host service and its model tools. Open the right Sidebar, choose Tags from its add menu, and select tags or type an expression.
+Enable the [File tags bundle](../filetags-bundle/README.md) on the Web or Desktop Plugins page. The bundle mounts this panel together with the Host service and its model tools. Open the right Sidebar and pick Tags from its guide, then select tags or type an expression.
 
 Selecting a chip adds it to the expression; selecting another tag extends the conjunction. Typing in the expression field replaces the chip selection. Results are capped at 200 rows by the Host and are filtered locally by path. Each row lists its tags, adds tag names typed in its field, and removes a tag from its × control. The write is applied before the row and tag counts refresh; a failed write keeps the previous row and reports it.
 

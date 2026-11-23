@@ -1,6 +1,7 @@
 {
   "meta": {
     "title": "Etiquetas de archivos",
-    "description": "Etiqueta archivos y carpetas de este equipo en una base de datos central y encuéntralos por expresión de etiquetas desde el chat o la barra lateral derecha."
+    "description": "Etiqueta archivos y carpetas de este equipo en una base de datos central y encuéntralos por expresión de etiquetas desde el chat o la barra lateral derecha.",
+    "detail": "docs/GUIDE.md"
   }
 }

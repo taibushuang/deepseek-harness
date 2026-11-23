@@ -26,7 +26,7 @@ kind: "package-bundle"
 
 打开插件页，在 Official 分组中启用“文件标签”。该 bundle 插入两行：数据库位于 `$DSH_HOME/data/filetags.db` 的 `filetags`，以及面板 `client-ui-filetags`。禁用后会移除工具与面板，数据库保留在原处，再次启用时标签仍在。
 
-请模型给文件或文件夹打标签，例如“给 ~/notes 和 ~/notes/today.md 打上 work 标签”。在右侧栏打开“标签”，选择标签或输入表达式即可再次找到它们。
+请模型给文件或文件夹打标签，例如“给 ~/notes 和 ~/notes/today.md 打上 work 标签”。在右侧栏的引导页选择“标签”，然后选择标签或输入表达式。
 
 <a id="understand-the-implementation"></a>
 ## 理解实现

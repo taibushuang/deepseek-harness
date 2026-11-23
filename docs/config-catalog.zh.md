@@ -2878,6 +2878,31 @@ export interface Config {
 ```
 <!-- END GENERATED config-catalog:@deepseek-ai/dsh-office-kit -->
 
+<!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-office-text -->
+<a id="deepseek-aidsh-office-text"></a>
+
+## `@deepseek-ai/dsh-office-text`
+
+- `inject`: `tools` · `fs` · `workingDirectory`
+- `source`: [`packages/experimental/office-text/src/index.ts:28`](../packages/experimental/office-text/src/index.ts)
+
+```ts config-catalog
+/** Plugin configuration. */
+export interface Config {
+  /** Maximum bytes read from one document. */
+  maxBytes: number
+  /** Default retained characters. */
+  maxChars: number
+  /** Hard retained-character ceiling. */
+  maxCharsCap: number
+  /** Default pages or slides read. */
+  maxPages: number
+  /** Hard pages-or-slides ceiling. */
+  maxPagesCap: number
+}
+```
+<!-- END GENERATED config-catalog:@deepseek-ai/dsh-office-text -->
+
 <!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-permission-presets -->
 <a id="deepseek-aidsh-permission-presets"></a>
 

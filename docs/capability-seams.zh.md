@@ -342,6 +342,8 @@ flowchart LR
   svc_liveshareShares["ctx.liveshareShares<br/>Owner share management Remote"]
   pkg_experimental_filetags["experimental-filetags"]
   svc_fileTags["ctx.fileTags<br/>File tag store"]
+  pkg_experimental_office_text["experimental-office-text"]
+  svc_officeText["ctx.officeText<br/>Office document text"]
   pkg_action_cards --> svc_actionCards
   pkg_agent --> svc_agents
   pkg_agent_default_model --> svc_agentDefaultModel
@@ -409,6 +411,7 @@ flowchart LR
   pkg_experimental_forge_github --> svc_forge
   pkg_experimental_forge_session --> svc_forgeSession
   pkg_experimental_liveshare --> svc_liveshareShares
+  pkg_experimental_office_text --> svc_officeText
   pkg_experimental_speech_to_text --> svc_speechToText
   pkg_experimental_speech_to_text_sensevoice --> svc_speechToText
   pkg_experimental_translator --> svc_translator
@@ -829,5 +832,6 @@ flowchart LR
 | `ctx.cordisInspect` | `core` | [`cordis-host-runner`](../packages/extensions/cordis-host-runner) | - | [`tool-cordis`](../packages/extensions/tool-cordis) | - | 注册 Host inspect 提供方、镜像 Client 提供方 manifest，并通过动态 Cordis 传输路由 Client 查询。 |
 | `ctx.liveshareShares` | `service` | [`experimental-liveshare`](../packages/experimental/liveshare) | - | - | - | 以单个 Typert Remote 命名空间发布 owner 分享管理操作，供 owner 客户端面调用；每个方法都委托给同源路由原先使用的同一组操作。 |
 | `ctx.fileTags` | `service` | `experimental-filetags` | - | - | - | 拥有集中标签数据库与四个标签工具；右侧栏面板通过生成的远程命名空间读写同一存储。 |
+| `ctx.officeText` | `service` | `experimental-office-text` | - | - | - | 在字节、字符与页数上限内抽取 Word、PowerPoint、Excel 与 PDF 文档的文本层；`office_text` 工具是它的模型侧消费者。 |
 
 维护模式：混合模式。服务从 Cordis 声明中发现；接口、实现和消费方角色在 `scripts/gen-doc-graphs.ts` 中分类，并设有完整性守卫。

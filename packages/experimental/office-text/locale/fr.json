@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Texte Office",
+    "description": "Lit le texte brut des fichiers Word, PowerPoint, Excel et PDF pour le modèle."
+  }
+}

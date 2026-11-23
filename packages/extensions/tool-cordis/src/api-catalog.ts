@@ -2801,6 +2801,20 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'officeText',
+    summary: 'Plain-text extraction over `ctx.fs`.',
+    description: 'Plain-text extraction over `ctx.fs`.',
+    methods: [
+      {
+        signature: 'async extract(target: FsTarget, request: OfficeTextRequest = {}, signal?: AbortSignal): Promise<OfficeTextResult>',
+        description: 'Read one document as plain text.',
+        parameters: [{ name: 'target', description: 'resolved file in the filesystem execution world.' }, { name: 'request', description: 'optional per-call caps.' }, { name: 'signal', description: 'caller cancellation.' }],
+        returns: 'the extracted result.',
+        throws: ['{FsError} when the target is missing, not a regular file, or exceeds the byte cap.', '{OfficeTextError} for an unsupported or invalid document.'],
+      },
+    ],
+  },
+  {
     key: 'otel',
     summary: 'Shared transport provider.',
     description: 'Shared transport provider. Mounting creates no queue, identity, or network connection.',
@@ -8836,6 +8850,18 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'OfficeSourceKey',
     declaration: 'export type OfficeSourceKey = Branded<\'OfficeSourceKey\'>;',
+  },
+  {
+    name: 'OfficeTextFormat',
+    declaration: 'export type OfficeTextFormat = \'docx\' | \'pptx\' | \'xlsx\' | \'pdf\';',
+  },
+  {
+    name: 'OfficeTextRequest',
+    declaration: 'export interface OfficeTextRequest {\n    readonly maxChars?: number;\n    readonly maxPages?: number;\n}',
+  },
+  {
+    name: 'OfficeTextResult',
+    declaration: 'export interface OfficeTextResult {\n    readonly format: OfficeTextFormat;\n    readonly text: string;\n    readonly chars: number;\n    readonly truncated: boolean;\n    readonly pages?: number;\n    readonly sheets?: readonly string[];\n}',
   },
   {
     name: 'OfficeWorkbookExtension',

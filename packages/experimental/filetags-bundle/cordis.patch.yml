@@ -7,3 +7,5 @@
       name: '@deepseek-ai/dsh-client-ui-filetags'
     - id: tool-fs-transfer
       name: '@deepseek-ai/dsh-tool-fs-transfer'
+    - id: office-text
+      name: '@deepseek-ai/dsh-office-text'

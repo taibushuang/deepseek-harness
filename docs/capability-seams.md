@@ -340,6 +340,8 @@ flowchart LR
   svc_liveshareShares["ctx.liveshareShares<br/>Owner share management Remote"]
   pkg_experimental_filetags["experimental-filetags"]
   svc_fileTags["ctx.fileTags<br/>File tag store"]
+  pkg_experimental_office_text["experimental-office-text"]
+  svc_officeText["ctx.officeText<br/>Office document text"]
   pkg_action_cards --> svc_actionCards
   pkg_agent --> svc_agents
   pkg_agent_default_model --> svc_agentDefaultModel
@@ -407,6 +409,7 @@ flowchart LR
   pkg_experimental_forge_github --> svc_forge
   pkg_experimental_forge_session --> svc_forgeSession
   pkg_experimental_liveshare --> svc_liveshareShares
+  pkg_experimental_office_text --> svc_officeText
   pkg_experimental_speech_to_text --> svc_speechToText
   pkg_experimental_speech_to_text_sensevoice --> svc_speechToText
   pkg_experimental_translator --> svc_translator
@@ -827,5 +830,6 @@ flowchart LR
 | `ctx.cordisInspect` | `core` | [`cordis-host-runner`](../packages/extensions/cordis-host-runner) | - | [`tool-cordis`](../packages/extensions/tool-cordis) | - | Registers host inspect providers, mirrors the client provider manifest, and routes client queries through the dynamic Cordis transport. |
 | `ctx.liveshareShares` | `service` | [`experimental-liveshare`](../packages/experimental/liveshare) | - | - | - | Publishes the owner share-management operations as one Typert Remote namespace that the owner client face calls; every method delegates to the same operations the same-origin routes used. |
 | `ctx.fileTags` | `service` | `experimental-filetags` | - | - | - | Owns the central tag database and the four tag tools; the right Sidebar panel reads and writes the same store through the generated Remote namespace. |
+| `ctx.officeText` | `service` | `experimental-office-text` | - | - | - | Extracts the text layer of Word, PowerPoint, Excel, and PDF documents under byte, character, and page caps; the office_text tool is its model-facing consumer. |
 
 Maintenance mode: hybrid: services are discovered from Cordis declarations; interface/implementation/consumer roles are classified in `scripts/gen-doc-graphs.ts` with a completeness guard.

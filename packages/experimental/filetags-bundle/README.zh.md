@@ -9,7 +9,7 @@ kind: "package-bundle"
 
 ## 概述
 
-在 Web 或 Desktop 的插件页启用文件标签。该 bundle 会挂载[集中式标签数据库及其四个模型工具](../filetags/README.zh.md)、[右侧栏标签面板](../client-ui-filetags/README.zh.md)，以及打标签后整理文件用的[逐字节复制与移动工具](../tool-fs-transfer/README.zh.md)。标签保存在 Harness 主目录下的一个数据库中，被管理目录不会收到边车文件。发布配置默认不启用此 bundle。
+在 Web 或 Desktop 的插件页启用文件标签。该 bundle 会挂载[集中式标签数据库及其四个模型工具](../filetags/README.zh.md)、[右侧栏标签面板](../client-ui-filetags/README.zh.md)，打标签后整理文件用的[逐字节复制与移动工具](../tool-fs-transfer/README.zh.md)，以及[Office 与 PDF 纯文本读取](../office-text/README.zh.md)。标签保存在 Harness 主目录下的一个数据库中，被管理目录不会收到边车文件。发布配置默认不启用此 bundle。
 
 ## 目录
 
@@ -31,7 +31,7 @@ kind: "package-bundle"
 <a id="understand-the-implementation"></a>
 ## 理解实现
 
-bundle 补丁插入宿主插件、仅浏览器端的面板与传输工具。宿主插件拥有 SQLite 数据库、四个标签工具和 `fileTags` 远程命名空间；面板挂载该命名空间生成的贡献并注册 `tags` 标签页类型；`tool-fs-transfer` 在文件系统提供方之上提供 `fs_copy` 与 `fs_move`。任何一行都不会向被标记目录写入标签元数据。
+bundle 补丁插入宿主插件、仅浏览器端的面板与传输工具。宿主插件拥有 SQLite 数据库、四个标签工具和 `fileTags` 远程命名空间；面板挂载该命名空间生成的贡献并注册 `tags` 标签页类型；`tool-fs-transfer` 在文件系统提供方之上提供 `fs_copy` 与 `fs_move`，`office-text` 提供读取 Word、PowerPoint、Excel 与 PDF 的 `office_text`。任何一行都不会向被标记目录写入标签元数据。
 
 <a id="model-experience"></a>
 ## 模型体验
@@ -40,11 +40,11 @@ bundle 补丁插入宿主插件、仅浏览器端的面板与传输工具。宿�
 
 #### 模型所见内容
 
-六个工具 schema：[filetags](../filetags/README.zh.md#model-experience) 中描述的四个工具——`filetags_tag`、`filetags_untag`、`filetags_search` 和 `filetags_list`——加上 [tool-fs-transfer](../tool-fs-transfer/README.zh.md#model-experience) 的 `fs_copy` 与 `fs_move`。本 bundle 不添加自己的提示词文本。
+七个工具 schema：[filetags](../filetags/README.zh.md#model-experience) 中描述的四个工具——`filetags_tag`、`filetags_untag`、`filetags_search` 和 `filetags_list`——加上 [tool-fs-transfer](../tool-fs-transfer/README.zh.md#model-experience) 的 `fs_copy` 与 `fs_move`，以及 [office-text](../office-text/README.zh.md#model-experience) 的 `office_text`。本 bundle 不添加自己的提示词文本。
 
 #### Token 影响
 
-该 bundle 为可调用工具的 Session 中每个请求增加六个固定工具 schema。搜索结果随匹配数量增长，上限 200 条；传输结果只含路径、操作与大小。
+该 bundle 为可调用工具的 Session 中每个请求增加七个固定工具 schema。搜索结果随匹配数量增长，上限 200 条；传输结果只含路径、操作与大小；文档读取最多携带配置的字符上限。
 
 #### KV 缓存影响
 

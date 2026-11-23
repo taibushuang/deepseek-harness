@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Office 文本",
+    "description": "读取 Word、PowerPoint、Excel 与 PDF 文件的纯文本，供模型阅读。"
+  }
+}

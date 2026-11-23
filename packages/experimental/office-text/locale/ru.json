@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Текст Office",
+    "description": "Читает простой текст файлов Word, PowerPoint, Excel и PDF для модели."
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Office-Text",
+    "description": "Liest den reinen Text aus Word-, PowerPoint-, Excel- und PDF-Dateien für das Modell."
+  }
+}

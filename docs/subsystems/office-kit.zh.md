@@ -119,4 +119,27 @@ async recalculate(request: OfficeRecalculationRequest, signal?: AbortSignal): Pr
 ```
 
 Source: [`packages/document/office-kit/src/index.ts`](../../packages/document/office-kit/src/index.ts)
+
+<a id="ctxofficetext--officetextservice"></a>
+
+### `ctx.officeText` — `OfficeTextService`
+
+Plain-text extraction over `ctx.fs`.
+
+```ts cordis-catalog
+/**
+ * Read one document as plain text.
+ * @param target - resolved file in the filesystem execution world.
+ * @param request - optional per-call caps.
+ * @param signal - caller cancellation.
+ * @returns the extracted result.
+ * @throws {FsError} when the target is missing, not a regular file, or exceeds the byte cap.
+ * @throws {OfficeTextError} for an unsupported or invalid document.
+ */
+async extract(target: FsTarget, request: OfficeTextRequest = {}, signal?: AbortSignal): Promise<OfficeTextResult>
+```
+
+Types: [FsTarget](filesystem.zh.md)
+
+Source: [`packages/experimental/office-text/src/service.ts`](../../packages/experimental/office-text/src/service.ts)
 <!-- END GENERATED cordis-surface -->

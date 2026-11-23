@@ -59,6 +59,7 @@ import * as ToolOffice from '@deepseek-ai/dsh-tool-office'
 import * as ToolFs from '@deepseek-ai/dsh-tool-fs'
 import * as ToolFsSearch from '@deepseek-ai/dsh-tool-fs-search'
 import * as ToolFsTransfer from '@deepseek-ai/dsh-tool-fs-transfer'
+import * as OfficeText from '@deepseek-ai/dsh-office-text'
 import * as ToolStrReplaceEditor from '@deepseek-ai/dsh-tool-str-replace-editor'
 import TerminalSessionService from '@deepseek-ai/dsh-terminal'
 import * as ToolPty from '@deepseek-ai/dsh-tool-terminal'
@@ -439,6 +440,18 @@ const TOOL_PACKAGES: ToolPackage[] = [
     },
     note:
       'The read-before-write/edit policy is added by `@deepseek-ai/dsh-fs-observation-policy` (an `fs/*` event-gate plugin, no schema change); the shipped compositions leave its row disabled, so mutations are unconditional unless a deployment enables it. The image tool is not registered without `ctx.attachments`; its schema is route-independent, and execution refuses unless the exact routed model declares image input. `apply_patch` registers only with `applyPatch: true`; the catalog sets it so the schema is documented. `dsh-base` and the Web `standard` preset enable it; the Web `ptc` and `cordis` presets and the PTC overlay state `applyPatch: false`.',
+  },
+  {
+    pkg: '@deepseek-ai/dsh-office-text',
+    dir: 'office-text',
+    source: 'packages/experimental/office-text/src/index.ts',
+    requires: ['ctx.tools', 'ctx.fs', 'ctx.workingDirectory'],
+    writes: ['tool/call', 'tool/result'],
+    async mount(ctx) {
+      await ctx.plugin(OfficeText)
+    },
+    note:
+      'Reads the text layer of OOXML and PDF documents without a Headless Office install; the same extractor is provided as `ctx.officeText`. OOXML parts are decompressed under per-part and combined budgets, one read is capped by bytes, and returned text is capped by characters.',
   },
   {
     pkg: '@deepseek-ai/dsh-tool-fs-transfer',

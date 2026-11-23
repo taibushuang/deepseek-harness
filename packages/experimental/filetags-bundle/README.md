@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-Enable file tags on the Web or Desktop Plugins page. The bundle mounts the [central tag database and its four model tools](../filetags/README.md), the [right Sidebar tag panel](../client-ui-filetags/README.md), and the [byte-exact copy and move tools](../tool-fs-transfer/README.md) used to sort files after tagging. Tags live in one database under the Harness home, so no managed directory receives a sidecar file. Shipped profiles leave the bundle disabled.
+Enable file tags on the Web or Desktop Plugins page. The bundle mounts the [central tag database and its four model tools](../filetags/README.md), the [right Sidebar tag panel](../client-ui-filetags/README.md), the [byte-exact copy and move tools](../tool-fs-transfer/README.md) used to sort files after tagging, and [plain-text Office and PDF reading](../office-text/README.md). Tags live in one database under the Harness home, so no managed directory receives a sidecar file. Shipped profiles leave the bundle disabled.
 
 ## Table of Contents
 
@@ -31,7 +31,7 @@ Ask the model to tag a file or folder, for example "tag ~/notes and ~/notes/toda
 <a id="understand-the-implementation"></a>
 ## Understand the implementation
 
-The bundle patch inserts the Host plugin, the browser-only panel, and the transfer tools. The Host plugin owns the SQLite database, the four tag tools, and the `fileTags` Remote namespace; the panel mounts that namespace's generated contribution and registers the `tags` tab type; `tool-fs-transfer` adds `fs_copy` and `fs_move` over the filesystem provider. No row writes tag metadata into the tagged directories.
+The bundle patch inserts the Host plugin, the browser-only panel, and the transfer tools. The Host plugin owns the SQLite database, the four tag tools, and the `fileTags` Remote namespace; the panel mounts that namespace's generated contribution and registers the `tags` tab type; `tool-fs-transfer` adds `fs_copy` and `fs_move` over the filesystem provider, and `office-text` adds `office_text` for Word, PowerPoint, Excel, and PDF documents. No row writes tag metadata into the tagged directories.
 
 <a id="model-experience"></a>
 ## Model Experience
@@ -40,11 +40,11 @@ The bundle patch inserts the Host plugin, the browser-only panel, and the transf
 
 #### What the model sees
 
-Six tool schemas: the four described in [filetags](../filetags/README.md#model-experience) — `filetags_tag`, `filetags_untag`, `filetags_search`, and `filetags_list` — plus `fs_copy` and `fs_move` from [tool-fs-transfer](../tool-fs-transfer/README.md#model-experience). The bundle adds no prompt text of its own.
+Seven tool schemas: the four described in [filetags](../filetags/README.md#model-experience) — `filetags_tag`, `filetags_untag`, `filetags_search`, and `filetags_list` — plus `fs_copy` and `fs_move` from [tool-fs-transfer](../tool-fs-transfer/README.md#model-experience), and `office_text` from [office-text](../office-text/README.md#model-experience). The bundle adds no prompt text of its own.
 
 #### Token effect
 
-The bundle adds six fixed tool schemas to every request in a Session that can call tools. Search results grow with the number of matches, capped at 200 entries; a transfer result carries only a path, an operation, and a size.
+The bundle adds seven fixed tool schemas to every request in a Session that can call tools. Search results grow with the number of matches, capped at 200 entries; a transfer result carries only a path, an operation, and a size; a document read carries at most the configured character cap.
 
 #### KV Cache effect
 

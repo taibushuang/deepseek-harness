@@ -43,6 +43,16 @@ The same bundle also provides `fs_copy` and `fs_move`, so the model can sort tag
 
 A destination must not exist. If the name is taken, the tool fails instead of overwriting; the model will choose another name. Parent folders are created. A move writes the destination first and then removes the source, and reports when the source was kept.
 
+## Read documents
+
+Ask the model to read a Word, PowerPoint, Excel, or PDF file and it uses `office_text`:
+
+- "Summarize `~/Work/CRM/report.docx`."
+- "List the open items in `~/Work/plan.xlsx`."
+- "Extract the key points from `~/Work/deck.pptx`."
+
+Legacy `.doc`, `.ppt`, and `.xls` files must be converted first. Scanned PDFs without a text layer return little text.
+
 ## Expression syntax
 
 Expressions combine tag names with `and`, `or`, `not`, and parentheses:

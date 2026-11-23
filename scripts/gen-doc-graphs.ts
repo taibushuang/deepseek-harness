@@ -1071,6 +1071,13 @@ const SERVICE_ROLES: ServiceRole[] = [
     mode: 'service',
     note: 'Owns the central tag database and the four tag tools; the right Sidebar panel reads and writes the same store through the generated Remote namespace.',
   },
+  {
+    key: 'officeText',
+    pkg: 'experimental-office-text',
+    title: 'Office document text',
+    mode: 'service',
+    note: 'Extracts the text layer of Word, PowerPoint, Excel, and PDF documents under byte, character, and page caps; the office_text tool is its model-facing consumer.',
+  },
 ]
 
 function generatedHeader(title: string): string[] {

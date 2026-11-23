@@ -540,6 +540,7 @@
       "@deepseek-ai/dsh-native-command": ["./packages/util/native-command/src"],
       "@deepseek-ai/dsh-notion": ["./packages/connector/notion/src"],
       "@deepseek-ai/dsh-office-kit": ["./packages/document/office-kit/src"],
+      "@deepseek-ai/dsh-office-text": ["./packages/experimental/office-text/src"],
       "@deepseek-ai/dsh-official-bundles": ["./packages/util/official-bundles/src"],
       "@deepseek-ai/dsh-output-retention": ["./packages/util/output-retention/src"],
       "@deepseek-ai/dsh-package-manifest": ["./packages/util/package-manifest/src"],

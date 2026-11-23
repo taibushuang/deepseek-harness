@@ -31,6 +31,7 @@ This table connects model-visible tool names to the plugin package and service s
 | `@deepseek-ai/dsh-tool-pwsh-persistent` | `pwsh` | `ctx.workingDirectory`, `ctx.tools`, `ctx.terminals`, `an owning Agent at execution time` | `tool/call`, `PTY shell state`, `tool/result` | - | One owner-isolated persistent pwsh tool, the Windows counterpart of the persistent bash tool; deployment composition supplies a pwsh-dialect PTY backend and may override the model-facing environment description. |
 | `@deepseek-ai/dsh-tool-str-replace-editor` | `str_replace_editor` | `ctx.tools`, `ctx.fs` | `tool/call`, `fs/observed after view presence/absence, edit absence, or successful mutation`, `tool/result` | - | Standalone view/create/unique literal replace/line insert tool over the filesystem seam; it composes with any shell or terminal API. |
 | `@deepseek-ai/dsh-tool-fs` | `apply_patch`, `edit`, `read`, `read_image`, `write` | `ctx.workingDirectory`, `ctx.tools`, `ctx.fs`, `ctx.systemPrompt`, `ctx.attachments (image-tool registration)`, `ctx.llm + an image-capable route (image-tool execution)` | `tool/call`, `fs/write-intent, fs/edit-intent, or fs/delete-intent for mutations`, `fs/observed after read presence/absence or successful file operation`, `durable attachment (read_image)`, `tool/result` | - | The read-before-write/edit policy is added by `@deepseek-ai/dsh-fs-observation-policy` (an `fs/*` event-gate plugin, no schema change); the shipped compositions leave its row disabled, so mutations are unconditional unless a deployment enables it. The image tool is not registered without `ctx.attachments`; its schema is route-independent, and execution refuses unless the exact routed model declares image input. `apply_patch` registers only with `applyPatch: true`; the catalog sets it so the schema is documented. `dsh-base` and the Web `standard` preset enable it; the Web `ptc` and `cordis` presets and the PTC overlay state `applyPatch: false`. |
+| `@deepseek-ai/dsh-office-text` | `office_text` | `ctx.tools`, `ctx.fs`, `ctx.workingDirectory` | `tool/call`, `tool/result` | - | Reads the text layer of OOXML and PDF documents without a Headless Office install; the same extractor is provided as `ctx.officeText`. OOXML parts are decompressed under per-part and combined budgets, one read is capped by bytes, and returned text is capped by characters. |
 | `@deepseek-ai/dsh-tool-fs-transfer` | `fs_copy`, `fs_move` | `ctx.fs`, `ctx.tools`, `ctx.workingDirectory`, `ctx.sandboxPolicy (confining filesystems)`, `ctx.approval (escalation)` | `tool/call`, `filesystem destination publication`, `source removal on move`, `tool/result` | - | Byte-exact copy and move over `ctx.fs.transferFile`: no text decoding, no destination overwrite, and parent directories created by the provider. Under a confining filesystem the schemas advertise `sandbox_permissions` and `justification`, using the same approval and denial vocabulary as `write`, `edit`, and `apply_patch`. |
 | `@deepseek-ai/dsh-tool-fs-search` | `glob`, `grep` | `ctx.workingDirectory`, `ctx.tools`, `ctx.subprocess`, `ctx.systemPrompt` | `tool/call`, `tool/result` | - | glob and grep are unconditional discovery tools that spawn the packaged ripgrep binary (`@vscode/ripgrep`) through ctx.subprocess as ordinary foreground calls (never background jobs) — no host `rg` install and no shell layer. The catalog uses `sampleOverCapGlobResults: true`; deployments must choose that behavior explicitly. Capped results save the complete formatted list through the optional ctx.spillStore backend; returned locators are follow-up-readable/searchable when the backend exposes local paths in co-located deployments. |
 | `@deepseek-ai/dsh-tool-terminal` | `terminal_close`, `terminal_list`, `terminal_open`, `terminal_read`, `terminal_send`, `terminal_signal` | `ctx.workingDirectory`, `ctx.tools`, `ctx.terminals`, `ctx.systemPrompt`, `ctx.jobs at call time for run_in_background` | `tool/call`, `tool/result` | - | The six terminal tools are opt-in and complement one-shot shell/filesystem tools. `terminal_send(run_in_background: true)` registers with `ctx.jobs`; TUI, named key sequences, BEL, resize, auto-start, and cross-agent sharing are absent from the schema. |
@@ -1245,6 +1246,41 @@ Create or fully replace a UTF-8 text file.
 Source: [`packages/fs/tool-fs/src/index.ts`](../packages/fs/tool-fs/src/index.ts)
 
 The read-before-write/edit policy is added by `@deepseek-ai/dsh-fs-observation-policy` (an `fs/*` event-gate plugin, no schema change); the shipped compositions leave its row disabled, so mutations are unconditional unless a deployment enables it. The image tool is not registered without `ctx.attachments`; its schema is route-independent, and execution refuses unless the exact routed model declares image input. `apply_patch` registers only with `applyPatch: true`; the catalog sets it so the schema is documented. `dsh-base` and the Web `standard` preset enable it; the Web `ptc` and `cordis` presets and the PTC overlay state `applyPatch: false`.
+
+<a id="deepseek-aidsh-office-text"></a>
+
+## `@deepseek-ai/dsh-office-text`
+
+### `office_text`
+
+Read the plain text of a Word (.docx), PowerPoint (.pptx), Excel (.xlsx), or PDF file. Returns paragraphs, slide text, worksheet rows, or PDF page text; long documents are truncated.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "path": {
+      "type": "string",
+      "description": "Document path, resolved by the filesystem backend (relative paths use the Session directory)."
+    },
+    "max_chars": {
+      "type": "integer",
+      "description": "Maximum characters to return. Defaults to the deployment limit."
+    },
+    "max_pages": {
+      "type": "integer",
+      "description": "Maximum PDF pages or presentation slides to read. Defaults to the deployment limit."
+    }
+  },
+  "required": [
+    "path"
+  ]
+}
+```
+
+Source: [`packages/experimental/office-text/src/index.ts`](../packages/experimental/office-text/src/index.ts)
+
+Reads the text layer of OOXML and PDF documents without a Headless Office install; the same extractor is provided as `ctx.officeText`. OOXML parts are decompressed under per-part and combined budgets, one read is capped by bytes, and returned text is capped by characters.
 
 <a id="deepseek-aidsh-tool-fs-transfer"></a>
 

@@ -1,0 +1,43 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write packages/experimental/office-text/README.md
+/:
+  en: 3673bff8e83fdb4e
+  zh: f537fc2d11e23afc
+/deepseek-ai-dsh-office-text:
+  en: 6c46d04aa9764d4c
+  zh: a68356a0a11dc41f
+/deepseek-ai-dsh-office-text/summary:
+  en: d21e2dcb178c3e13
+  zh: e45faee7004bbc91
+/deepseek-ai-dsh-office-text/table-of-contents:
+  en: 76368b6b1da79c80
+  zh: 1e8f931a56b7d34d
+/deepseek-ai-dsh-office-text/use-this-package:
+  en: 96c5fe9b3e5b9a95
+  zh: 7a8e2e0f3cf7c8b8
+/deepseek-ai-dsh-office-text/understand-the-implementation:
+  en: ecdf122210c77f63
+  zh: f867f67e93c224c6
+/deepseek-ai-dsh-office-text/model-experience:
+  en: 215e7ba838619b7b
+  zh: a311da3843709f90
+/deepseek-ai-dsh-office-text/model-experience/office-text-tool:
+  en: a68d3aff78835c77
+  zh: dcdb607f556fc3b1
+/deepseek-ai-dsh-office-text/model-experience/office-text-tool/what-the-model-sees:
+  en: 58325c28fc7759a7
+  zh: 39a86d56f1b01fe5
+/deepseek-ai-dsh-office-text/model-experience/office-text-tool/token-effect:
+  en: 87383e752512d0bb
+  zh: 5fe3a0179185d185
+/deepseek-ai-dsh-office-text/model-experience/office-text-tool/kv-cache-effect:
+  en: 678a937da5e28a7f
+  zh: 8d2ee3c6d462aa79
+/deepseek-ai-dsh-office-text/known-limitations-and-deferred-work:
+  en: 5be3443fffd33805
+  zh: 6fee37823a809747
+/deepseek-ai-dsh-office-text/known-limitations-and-deferred-work/dev-note:
+  en: 0d5bd108559e226e
+  zh: 0729786e5f1a4314

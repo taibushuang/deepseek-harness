@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Texto de Office",
+    "description": "Lee el texto plano de archivos Word, PowerPoint, Excel y PDF para que el modelo los lea."
+  }
+}

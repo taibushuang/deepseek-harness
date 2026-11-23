@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Office テキスト",
+    "description": "Word、PowerPoint、Excel、PDF ファイルのプレーンテキストをモデルが読める形で抽出します。"
+  }
+}

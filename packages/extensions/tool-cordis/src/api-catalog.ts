@@ -2126,6 +2126,12 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         parameters: [{ name: 'source', description: 'the resolved regular source; its line-ending style and mode carry over.' }, { name: 'destination', description: 'the resolved destination within the same provider.' }, { name: 'options', description: 'optional hunks and the source/destination guards; an omitted guard is unconditional.' }, { name: 'signal', description: 'checked before destination staging; the commit then completes both effects.' }, { name: 'sandboxPolicy', description: 'the per-call mode and workspace root both paths run under; a sandboxing backend fences them, the bare backend ignores it. Omit to leave the backend its own default.' }],
         returns: 'the bounded LF source basis, the destination outcome, and the source-removal status.',
       },
+      {
+        signature: 'async transferFile( source: FsTarget, destination: FsTarget, options: { move: boolean expectedSource?: { version: FsVersion } expectedDestination?: FsWriteIntent }, signal?: AbortSignal, sandboxPolicy?: SandboxExecutionPolicy, ): Promise<FsTransferOutcome>',
+        description: 'Byte-exactly copy one regular file, or move it without reading its text. Unlike moveFile, which reads and may patch UTF-8 text, this method never decodes the content, so it carries Office documents, images, and other binaries. Identical targets report `FS_SAME_TARGET`; a missing or stale source follows moveFile; the destination guard follows writeText, with an existing destination under `createIfAbsent` reported as `FS_ALREADY_EXISTS`. A move publishes the destination before removing the source and reports retained sources through `sourceDeleted: false`.',
+        parameters: [{ name: 'source', description: 'the resolved regular source.' }, { name: 'destination', description: 'the resolved destination within the same provider.' }, { name: 'options', description: 'move-or-copy and the source/destination guards; an omitted guard is unconditional.' }, { name: 'signal', description: 'checked before publication; the commit then completes both effects.' }, { name: 'sandboxPolicy', description: 'the per-call mode and workspace root both paths run under.' }],
+        returns: 'the destination outcome and, for a move, the source-removal status.',
+      },
     ],
   },
   {
@@ -7914,6 +7920,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'FsTargetKey',
     declaration: 'export type FsTargetKey = Branded<\'FsTargetKey\'>;',
+  },
+  {
+    name: 'FsTransferOutcome',
+    declaration: 'export interface FsTransferOutcome {\n    operation: \'create\' | \'update\';\n    version: FsVersion;\n    size: number;\n    sourceDeleted?: true | false;\n    sourceFailure?: FsMoveSourceFailure;\n}',
   },
   {
     name: 'FsVersion',

@@ -96,6 +96,7 @@ kind: "package-group"
 | [`filetags`](filetags/README.zh.md) | 面向文件和目录的中央数据库标签，以标签表达式搜索作为模型工具，并提供 `fileTags` 远程命名空间 | `ctx.fileTags` |
 | [`client-ui-filetags`](client-ui-filetags/README.zh.md) | 基于 `fileTags` 远程命名空间的右侧栏标签面板 | — |
 | [`filetags-bundle`](filetags-bundle/README.zh.md) | 标签工具与侧栏面板的可选组合 | — |
+| [`tool-fs-transfer`](tool-fs-transfer/README.zh.md) | 逐字节复制与移动文件、且拒绝覆盖的工具 | `ctx.tools` |
 | [`webworker-packer`](webworker-packer/README.zh.md) | 构建浏览器 worker 预览所消费的 gzip 压缩虚拟文件系统（VFS）镜像 | 库与 CLI（命令行界面），不使用 ctx key |
 | [`webworker-runtime`](webworker-runtime/README.zh.md) | 在专用浏览器 worker 中运行 harness 插件树 | 库与 worker 入口，不使用 ctx key |
 | [`worktree`](worktree/README.zh.md) | 创建具名 Git 工作树并改变调用 Session 的当前目录 | `ctx.worktrees` |

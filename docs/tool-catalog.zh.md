@@ -35,6 +35,7 @@
 | `@deepseek-ai/dsh-tool-pwsh-persistent` | `pwsh` | `ctx.workingDirectory`、`ctx.tools`、`ctx.terminals`、`an owning Agent at execution time` | `tool/call`、`PTY shell state`、`tool/result` | - | 一个按所有者隔离的持久 pwsh 工具，持久 bash 工具的 Windows 对应物；部署组合提供 pwsh 方言的 PTY 后端，并可覆盖面向模型的环境描述。 |
 | `@deepseek-ai/dsh-tool-str-replace-editor` | `str_replace_editor` | `ctx.tools`、`ctx.fs` | `tool/call`、`fs/observed after view presence/absence, edit absence, or successful mutation`、`tool/result` | - | 基于文件系统 seam 的独立查看／创建／唯一字面量替换／按行插入工具；可与任何 shell 或终端接口组合。 |
 | `@deepseek-ai/dsh-tool-fs` | `apply_patch`、`edit`、`read`、`read_image`、`write` | `ctx.workingDirectory`、`ctx.tools`、`ctx.fs`、`ctx.systemPrompt`、`ctx.attachments (image-tool registration)`、`ctx.llm + an image-capable route (image-tool execution)` | `tool/call`、`fs/write-intent, fs/edit-intent, or fs/delete-intent for mutations`、`fs/observed after read presence/absence or successful file operation`、`durable attachment (read_image)`、`tool/result` | - | 先读后写／编辑策略由 `@deepseek-ai/dsh-fs-observation-policy` 添加；它是一个 `fs/*` 事件门禁插件，不会改变 schema。随发行版交付的组合保持该行禁用，因此除非部署启用它，修改都是无条件的。没有 `ctx.attachments` 时图片工具不会注册；其 schema 与路由无关，执行时除非确切路由的模型声明图片输入，否则拒绝。`apply_patch` 仅在 `applyPatch: true` 时注册；目录为了记录其 schema 而开启该开关。`dsh-base` 与 Web 的 `standard` preset 开启它；Web 的 `ptc`、`cordis` preset 以及 PTC overlay 显式写出 `applyPatch: false`。 |
+| `@deepseek-ai/dsh-tool-fs-transfer` | `fs_copy`、`fs_move` | `ctx.fs`、`ctx.tools`、`ctx.workingDirectory`、`ctx.sandboxPolicy (confining filesystems)`、`ctx.approval (escalation)` | `tool/call`、`filesystem destination publication`、`source removal on move`、`tool/result` | - | 基于 `ctx.fs.transferFile` 的逐字节复制与移动：不解码文本、不覆盖目标，父目录由提供方创建。在限制型文件系统下，schema 广告 `sandbox_permissions` 与 `justification`，复用 `write`、`edit`、`apply_patch` 的审批与拒绝词汇。 |
 | `@deepseek-ai/dsh-tool-fs-search` | `glob`、`grep` | `ctx.workingDirectory`、`ctx.tools`、`ctx.subprocess`、`ctx.systemPrompt` | `tool/call`、`tool/result` | - | glob 和 grep 是无条件可用的发现工具，通过 ctx.subprocess spawn 随包提供的 ripgrep 二进制文件（`@vscode/ripgrep`），并作为普通前台调用运行，绝不作为后台任务；无需在宿主机安装 `rg`，也不经过 shell 层。本目录使用 `sampleOverCapGlobResults: true`；部署必须显式选择该行为。结果超过上限时，会通过可选的 ctx.spillStore 后端保存完整的格式化列表；在共置部署中，如果后端公开本地路径，返回的定位信息可供后续读取／搜索。 |
 | `@deepseek-ai/dsh-tool-terminal` | `terminal_close`、`terminal_list`、`terminal_open`、`terminal_read`、`terminal_send`、`terminal_signal` | `ctx.workingDirectory`、`ctx.tools`、`ctx.terminals`、`ctx.systemPrompt`、`ctx.jobs at call time for run_in_background` | `tool/call`、`tool/result` | - | 这 6 个终端工具需要选择启用，用于补充一次性 bash／文件系统工具。`terminal_send(run_in_background: true)` 会注册到 `ctx.jobs`；schema 不包含 TUI、具名按键序列、BEL、调整尺寸、自动启动和跨 agent 共享。 |
 | `@deepseek-ai/dsh-terminal-panel` | `user_terminal_list`、`user_terminal_read` | `ctx.tools`、`ctx.systemPrompt`、`ctx.terminals`、`ctx.terminalController`、`ctx.sandboxPolicy`、`a calling Agent` | `tool/call`、`tool/result` | - | 本包还用 Web 侧栏终端承载 6 个 `terminal_*` 工具。`user_terminal_list` 和 `user_terminal_read` 只读取用户控制的终端；`readUserTerminals: false` 会移除这两个工具。 |
@@ -1250,6 +1251,64 @@ pwsh 工具是 Windows 组合中 bash 执行器 seam 的 PowerShell 方言消费
 来源：[`packages/fs/tool-fs/src/index.ts`](../packages/fs/tool-fs/src/index.ts)
 
 先读后写／编辑策略由 `@deepseek-ai/dsh-fs-observation-policy` 添加；它是一个 `fs/*` 事件门禁插件，不会改变 schema。随发行版交付的组合保持该行禁用，因此除非部署启用它，修改都是无条件的。没有 `ctx.attachments` 时图片工具不会注册；其 schema 与路由无关，执行时除非确切路由的模型声明图片输入，否则拒绝。`apply_patch` 仅在 `applyPatch: true` 时注册；目录为了记录其 schema 而开启该开关。`dsh-base` 与 Web 的 `standard` preset 开启它；Web 的 `ptc`、`cordis` preset 以及 PTC overlay 显式写出 `applyPatch: false`。
+
+<a id="deepseek-aidsh-tool-fs-transfer"></a>
+
+## `@deepseek-ai/dsh-tool-fs-transfer`
+
+### `fs_copy`
+
+逐字节复制一个文件。目标必须不存在；缺失的父目录会被创建。用于文档、图片和读写工具无法解码的其他二进制文件。
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "source_path": {
+      "type": "string",
+      "description": "Existing file to copy or move, resolved by the filesystem backend (relative paths use the Session directory)."
+    },
+    "destination_path": {
+      "type": "string",
+      "description": "Destination file path. It must not exist; parent directories are created."
+    }
+  },
+  "required": [
+    "source_path",
+    "destination_path"
+  ]
+}
+```
+
+Source: [`packages/experimental/tool-fs-transfer/src/index.ts`](../packages/experimental/tool-fs-transfer/src/index.ts)
+
+### `fs_move`
+
+逐字节移动一个文件，在目标完整后删除源。目标必须不存在；缺失的父目录会被创建。用于整理和归档二进制文件。
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "source_path": {
+      "type": "string",
+      "description": "Existing file to copy or move, resolved by the filesystem backend (relative paths use the Session directory)."
+    },
+    "destination_path": {
+      "type": "string",
+      "description": "Destination file path. It must not exist; parent directories are created."
+    }
+  },
+  "required": [
+    "source_path",
+    "destination_path"
+  ]
+}
+```
+
+Source: [`packages/experimental/tool-fs-transfer/src/index.ts`](../packages/experimental/tool-fs-transfer/src/index.ts)
+
+基于 `ctx.fs.transferFile` 的逐字节复制与移动：不解码文本、不覆盖目标，父目录由提供方创建。在限制型文件系统下，schema 广告 `sandbox_permissions` 与 `justification`，复用 `write`、`edit`、`apply_patch` 的审批与拒绝词汇。
 
 <a id="deepseek-aidsh-tool-fs-search"></a>
 

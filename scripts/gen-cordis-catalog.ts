@@ -1109,6 +1109,7 @@ export const TYPE_LINK_EXEMPTIONS: Readonly<Record<string, string>> = {
   TagRequest: 'packages/experimental/filetags/README.md',
   TaggedEntry: 'packages/experimental/filetags/README.md',
   TagSummary: 'packages/experimental/filetags/README.md',
+  FsTransferOutcome: 'packages/fs/fs/README.md',
   DeepseekChatImportLimits: 'upload limits returned to the browser are owned by packages/experimental/deepseek-chat-import/src/types.ts',
   ProductEvent: 'Desktop event fields are owned by packages/client/product-analytics/README.md and src/events.ts',
   ConnectionFetchHandler: 'shared Fetch dispatch is owned by packages/client/connection/src/rpc.ts',

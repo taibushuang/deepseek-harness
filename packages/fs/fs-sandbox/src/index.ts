@@ -30,7 +30,7 @@ import { Context } from '@deepseek-ai/cordis'
 import { LocalFileSystem } from '@deepseek-ai/dsh-fs-local'
 import type { Config as LocalConfig } from '@deepseek-ai/dsh-fs-local'
 import { FsError } from '@deepseek-ai/dsh-fs'
-import type { FsDeleteOutcome, FsMoveOutcome, FsEditOutcome, FsEditRequest, FsTarget, FsVersion, FsWriteIntent, FsWriteOutcome } from '@deepseek-ai/dsh-fs'
+import type { FsDeleteOutcome, FsMoveOutcome, FsTransferOutcome, FsEditOutcome, FsEditRequest, FsTarget, FsVersion, FsWriteIntent, FsWriteOutcome } from '@deepseek-ai/dsh-fs'
 import { writableRoots } from '@deepseek-ai/dsh-sandbox'
 import type { SandboxExecutionPolicy, SandboxMode } from '@deepseek-ai/dsh-sandbox'
 import type {} from '@deepseek-ai/dsh-sandbox-policy'
@@ -140,6 +140,25 @@ export class SandboxedFileSystem extends LocalFileSystem {
     const checkedSource = await this.checkedTarget(source, sandboxPolicy)
     const checkedDestination = await this.checkedTarget(destination, sandboxPolicy)
     return super.moveFile(checkedSource, checkedDestination, options, signal)
+  }
+
+  /**
+   * Fence both paths by the per-call policy, then delegate the byte-exact
+   * transfer to the inherited local provider.
+   * @param source - the resolved source to copy or move.
+   * @param destination - the resolved destination.
+   * @param options - move-or-copy and the source/destination guards.
+   * @param signal - aborts before publication takes effect.
+   * @param sandboxPolicy - the per-call mode and workspace root; omit to use the deployment fallback.
+   * @returns the destination outcome from the inherited backend.
+   */
+  override async transferFile(
+    source: FsTarget, destination: FsTarget, options: Parameters<LocalFileSystem['transferFile']>[2],
+    signal?: AbortSignal, sandboxPolicy?: SandboxExecutionPolicy,
+  ): Promise<FsTransferOutcome> {
+    const checkedSource = await this.checkedTarget(source, sandboxPolicy)
+    const checkedDestination = await this.checkedTarget(destination, sandboxPolicy)
+    return super.transferFile(checkedSource, checkedDestination, options, signal)
   }
 
   /**

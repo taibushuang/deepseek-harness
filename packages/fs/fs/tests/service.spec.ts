@@ -149,6 +149,14 @@ describe('FileSystem provider seam', () => {
     await expect(fs.readBytes(target, undefined, 1)).rejects.toMatchObject({ code: 'FS_TOO_LARGE' })
   })
 
+  it('rejects transfer when a provider does not implement it', async () => {
+    const ctx = new Context()
+    await ctx.plugin(FakeFileSystem)
+    const fs = ctx.fs as FakeFileSystem
+    const target = await fs.resolve('a.txt')
+    await expect(fs.transferFile(target, target, { move: false })).rejects.toMatchObject({ code: 'FS_IO_ERROR' })
+  })
+
   it('rejects watching when a provider does not implement observation', async () => {
     const ctx = new Context()
     await ctx.plugin(FakeFileSystem)

@@ -662,6 +662,25 @@ abstract deleteFile( target: FsTarget, expected?: { version: FsVersion }, signal
  * @returns the bounded LF source basis, the destination outcome, and the source-removal status.
  */
 abstract moveFile( source: FsTarget, destination: FsTarget, options: { hunks?: readonly PatchHunk[] expectedSource?: { version: FsVersion } expectedDestination?: FsWriteIntent }, signal?: AbortSignal, sandboxPolicy?: SandboxExecutionPolicy, ): Promise<FsMoveOutcome>
+
+/**
+ * Byte-exactly copy one regular file, or move it without reading its text.
+ * Unlike {@link moveFile}, which reads and may patch UTF-8 text, this method
+ * never decodes the content, so it carries Office documents, images, and
+ * other binaries. Identical targets report `FS_SAME_TARGET`; a missing or
+ * stale source follows {@link moveFile}; the destination guard follows
+ * {@link writeText}, with an existing destination under `createIfAbsent`
+ * reported as `FS_ALREADY_EXISTS`. A move publishes the destination before
+ * removing the source and reports retained sources through
+ * `sourceDeleted: false`.
+ * @param source - the resolved regular source.
+ * @param destination - the resolved destination within the same provider.
+ * @param options - move-or-copy and the source/destination guards; an omitted guard is unconditional.
+ * @param signal - checked before publication; the commit then completes both effects.
+ * @param sandboxPolicy - the per-call mode and workspace root both paths run under.
+ * @returns the destination outcome and, for a move, the source-removal status.
+ */
+async transferFile( source: FsTarget, destination: FsTarget, options: { move: boolean expectedSource?: { version: FsVersion } expectedDestination?: FsWriteIntent }, signal?: AbortSignal, sandboxPolicy?: SandboxExecutionPolicy, ): Promise<FsTransferOutcome>
 ```
 
 Types: [SandboxExecutionPolicy](sandbox.md)

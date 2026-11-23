@@ -337,3 +337,39 @@ describe('patch, delete, and move fences', () => {
     }
   })
 })
+
+describe('transferFile fencing', () => {
+  it('denies a copy whose source or destination is outside the workspace', async () => {
+    await boot('workspace-write')
+    const inside = join(workspace, 'inside.bin')
+    const outsideFile = join(outside, 'outside.bin')
+    await writeFile(inside, Buffer.from([1]))
+    await writeFile(outsideFile, Buffer.from([2]))
+    await expect(fs.transferFile(await target(inside), await target(outsideFile), { move: false }))
+      .rejects.toMatchObject({ code: 'FS_SANDBOX_DENIED' })
+    await expect(fs.transferFile(await target(outsideFile), await target(join(workspace, 'copy.bin')), { move: false }))
+      .rejects.toMatchObject({ code: 'FS_SANDBOX_DENIED' })
+    expect(existsSync(join(workspace, 'copy.bin'))).toBe(false)
+  })
+
+  it('allows a binary move inside the workspace', async () => {
+    await boot('workspace-write')
+    const source = join(workspace, 'source.bin')
+    await writeFile(source, Buffer.from([3, 4]))
+    const outcome = await fs.transferFile(await target(source), await target(join(workspace, 'moved.bin')), {
+      move: true, expectedDestination: { kind: 'createIfAbsent' },
+    })
+    expect(outcome.sourceDeleted).toBe(true)
+    expect(await readFile(join(workspace, 'moved.bin'))).toEqual(Buffer.from([3, 4]))
+    expect(existsSync(source)).toBe(false)
+  })
+
+  it('denies transfers under read-only', async () => {
+    await boot('read-only')
+    const source = join(workspace, 'source.bin')
+    await writeFile(source, Buffer.from([1]))
+    await expect(fs.transferFile(await target(source), await target(join(workspace, 'copy.bin')), { move: false }))
+      .rejects.toMatchObject({ code: 'FS_SANDBOX_DENIED' })
+    expect(existsSync(join(workspace, 'copy.bin'))).toBe(false)
+  })
+})

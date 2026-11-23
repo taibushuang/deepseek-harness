@@ -186,6 +186,20 @@ export type FsMoveOutcome =
   | { sourceBefore: string | null; destination: FsWriteOutcome; sourceDeleted: true }
   | { sourceBefore: string | null; destination: FsWriteOutcome; sourceDeleted: false; sourceFailure: FsMoveSourceFailure }
 
+/** Outcome of a byte-exact copy or move: no text basis is read or produced. */
+export interface FsTransferOutcome {
+  /** Whether the destination was created or replaced. */
+  operation: 'create' | 'update'
+  /** Opaque version of the destination after publication. */
+  version: FsVersion
+  /** Destination size in bytes after publication. */
+  size: number
+  /** For a move, whether the source was removed; absent for a copy. */
+  sourceDeleted?: true | false
+  /** For a move whose destination committed but source removal failed. */
+  sourceFailure?: FsMoveSourceFailure
+}
+
 /** Stable filesystem failure codes shared by providers, consumers, and wire validators. */
 export const FS_ERROR_CODES = [
   'FS_NOT_FOUND',

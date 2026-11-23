@@ -96,6 +96,7 @@ Promotion requires a named product role, documented public behavior and limitati
 | [`filetags`](filetags/README.md) | Central-database tags for files and directories, with tag-expression search as model tools and the `fileTags` Remote namespace | `ctx.fileTags` |
 | [`client-ui-filetags`](client-ui-filetags/README.md) | Right Sidebar tag panel over the `fileTags` Remote namespace | — |
 | [`filetags-bundle`](filetags-bundle/README.md) | Optional composition of the tag tools and the Sidebar panel | — |
+| [`tool-fs-transfer`](tool-fs-transfer/README.md) | Byte-exact file copy and move tools with no-overwrite guards | `ctx.tools` |
 | [`webworker-packer`](webworker-packer/README.md) | Builds the gzip-compressed VFS image consumed by the browser worker preview | library and CLI — no ctx key |
 | [`webworker-runtime`](webworker-runtime/README.md) | Runs the harness plugin tree inside a dedicated browser worker | library and worker entry — no ctx key |
 | [`worktree`](worktree/README.md) | Creates a named Git worktree and changes the calling Session directory | `ctx.worktrees` |

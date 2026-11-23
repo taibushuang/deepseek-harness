@@ -58,6 +58,7 @@ import * as ToolPresent from '@deepseek-ai/dsh-tool-present'
 import * as ToolOffice from '@deepseek-ai/dsh-tool-office'
 import * as ToolFs from '@deepseek-ai/dsh-tool-fs'
 import * as ToolFsSearch from '@deepseek-ai/dsh-tool-fs-search'
+import * as ToolFsTransfer from '@deepseek-ai/dsh-tool-fs-transfer'
 import * as ToolStrReplaceEditor from '@deepseek-ai/dsh-tool-str-replace-editor'
 import TerminalSessionService from '@deepseek-ai/dsh-terminal'
 import * as ToolPty from '@deepseek-ai/dsh-tool-terminal'
@@ -438,6 +439,18 @@ const TOOL_PACKAGES: ToolPackage[] = [
     },
     note:
       'The read-before-write/edit policy is added by `@deepseek-ai/dsh-fs-observation-policy` (an `fs/*` event-gate plugin, no schema change); the shipped compositions leave its row disabled, so mutations are unconditional unless a deployment enables it. The image tool is not registered without `ctx.attachments`; its schema is route-independent, and execution refuses unless the exact routed model declares image input. `apply_patch` registers only with `applyPatch: true`; the catalog sets it so the schema is documented. `dsh-base` and the Web `standard` preset enable it; the Web `ptc` and `cordis` presets and the PTC overlay state `applyPatch: false`.',
+  },
+  {
+    pkg: '@deepseek-ai/dsh-tool-fs-transfer',
+    dir: 'tool-fs-transfer',
+    source: 'packages/experimental/tool-fs-transfer/src/index.ts',
+    requires: ['ctx.fs', 'ctx.tools', 'ctx.workingDirectory', 'ctx.sandboxPolicy (confining filesystems)', 'ctx.approval (escalation)'],
+    writes: ['tool/call', 'filesystem destination publication', 'source removal on move', 'tool/result'],
+    async mount(ctx) {
+      await ctx.plugin(ToolFsTransfer)
+    },
+    note:
+      'Byte-exact copy and move over `ctx.fs.transferFile`: no text decoding, no destination overwrite, and parent directories created by the provider. Under a confining filesystem the schemas advertise `sandbox_permissions` and `justification`, using the same approval and denial vocabulary as `write`, `edit`, and `apply_patch`.',
   },
   {
     pkg: '@deepseek-ai/dsh-tool-fs-search',

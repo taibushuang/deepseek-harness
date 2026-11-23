@@ -26,6 +26,7 @@ import type {
   FsTarget,
   FsWriteIntent,
   FsWriteOutcome,
+  FsTransferOutcome,
 } from '@deepseek-ai/dsh-fs'
 import {
   applyLiteralEdit,
@@ -43,6 +44,8 @@ import {
   resolveLocalTarget,
   restoreLineEndings,
   removeFile,
+  copyFileAtomic,
+  tryLinkFile,
   streamWholeText,
   writeFileAtomic,
 } from './fsio.ts'
@@ -344,6 +347,71 @@ export class LocalFileSystem extends FileSystem {
       }
       return { sourceBefore, destination: outcome, sourceDeleted: true }
     })
+  }
+
+  override async transferFile(
+    source: FsTarget, destination: FsTarget, options: Parameters<FileSystem['transferFile']>[2],
+    signal?: AbortSignal,
+  ): Promise<FsTransferOutcome> {
+    if (source.targetKey === destination.targetKey) {
+      throw new FsError(`cannot ${options.move ? 'move' : 'copy'} "${source.displayPath}" to itself`, 'FS_SAME_TARGET')
+    }
+    const verb = options.move ? 'move' : 'copy'
+    return this.withLocks([source.targetKey, destination.targetKey], async () => {
+      const sourceInfo = await this.requireFile(source, options.expectedSource, verb)
+      const existing = await this.transferTarget(destination, options.expectedDestination, verb)
+      await this.internals.inspectBeforeMutation?.(source)
+      await this.internals.inspectBeforeMutation?.(destination)
+      if (signal?.aborted) throw new FsError(`${verb} aborted`, 'FS_ABORTED')
+
+      // A same-volume move publishes the destination as a hard link first, so the
+      // destination is complete before the source is removed; other volumes fall
+      // back to an atomic byte copy.
+      let linked = false
+      if (options.move && options.expectedDestination?.kind === 'createIfAbsent') {
+        linked = await tryLinkFile(source.targetKey, destination.targetKey, destination.displayPath, this.internals)
+      }
+      if (!linked) {
+        await copyFileAtomic(source.targetKey, destination.targetKey, sourceInfo.mode, signal, this.internals, {
+          displayPath: destination.displayPath,
+          createIfAbsent: options.expectedDestination?.kind === 'createIfAbsent',
+          existingDestination: existing !== null,
+        })
+      }
+      const published = await probe(destination.targetKey)
+      const outcome: FsTransferOutcome = {
+        operation: existing === null ? 'create' : 'update',
+        version: this.versionAfterWrite(published, destination),
+        /* v8 ignore next -- a missing post-publication probe needs a concurrent unlink between commit and stat. */
+        size: published?.size ?? sourceInfo.size,
+      }
+      if (!options.move) return outcome
+      try {
+        await removeFile(source.targetKey, source.displayPath, this.internals)
+      } catch (error) {
+        /* v8 ignore next -- removeFile maps every failure to FsError; a defect escaping its mapper must still reject. */
+        if (!(error instanceof FsError)) throw error
+        return { ...outcome, sourceDeleted: false, sourceFailure: { code: error.code, message: error.message } }
+      }
+      return { ...outcome, sourceDeleted: true }
+    })
+  }
+
+  private async transferTarget(target: FsTarget, expected: FsWriteIntent | undefined, verb: string): Promise<PathInfo | null> {
+    const existing = await probe(target.targetKey)
+    if (existing && existing.type !== 'file') {
+      throw new FsError(`cannot ${verb} to "${target.displayPath}": not a regular file`, 'FS_NOT_REGULAR_FILE')
+    }
+    if (expected?.kind === 'createIfAbsent' && existing) {
+      throw new FsError(`cannot ${verb} to "${target.displayPath}": file already exists`, 'FS_ALREADY_EXISTS')
+    }
+    if (expected?.kind === 'replaceIfVersion') {
+      if (!existing) throw new FsError(`cannot ${verb} to "${target.displayPath}": file no longer exists`, 'FS_STALE_VERSION')
+      if (existing.version !== expected.version) {
+        throw new FsError(`cannot ${verb} to "${target.displayPath}": file changed since it was read`, 'FS_STALE_VERSION')
+      }
+    }
+    return existing
   }
 
   private async writeTarget(target: FsTarget, expected?: FsWriteIntent): Promise<PathInfo | null> {

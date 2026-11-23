@@ -1,0 +1,43 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write packages/experimental/tool-fs-transfer/README.md
+/:
+  en: 60a92f19a2975fb1
+  zh: 064281953e15104b
+/deepseek-ai-dsh-tool-fs-transfer:
+  en: 5189d80556705bda
+  zh: 184f6db921f8b37e
+/deepseek-ai-dsh-tool-fs-transfer/summary:
+  en: dba8d329916752ef
+  zh: 435d7bcc4a5d25c4
+/deepseek-ai-dsh-tool-fs-transfer/table-of-contents:
+  en: 76368b6b1da79c80
+  zh: 1e8f931a56b7d34d
+/deepseek-ai-dsh-tool-fs-transfer/use-this-package:
+  en: ff02848eb1f080c3
+  zh: 8c6a9a36a843d754
+/deepseek-ai-dsh-tool-fs-transfer/understand-the-implementation:
+  en: cc1ba4aaef6b0a24
+  zh: ef25a8311029e479
+/deepseek-ai-dsh-tool-fs-transfer/model-experience:
+  en: 215e7ba838619b7b
+  zh: a311da3843709f90
+/deepseek-ai-dsh-tool-fs-transfer/model-experience/transfer-tools:
+  en: 475e5e83bf0f9811
+  zh: ebec76687c668896
+/deepseek-ai-dsh-tool-fs-transfer/model-experience/transfer-tools/what-the-model-sees:
+  en: 8b62ba2d63abc899
+  zh: a574fd4531d13f8e
+/deepseek-ai-dsh-tool-fs-transfer/model-experience/transfer-tools/token-effect:
+  en: 9271de161444d5f0
+  zh: b1ab1ac188d86c1f
+/deepseek-ai-dsh-tool-fs-transfer/model-experience/transfer-tools/kv-cache-effect:
+  en: acda550e7429dc6c
+  zh: 77f4165985692289
+/deepseek-ai-dsh-tool-fs-transfer/known-limitations-and-deferred-work:
+  en: 56ee05caffa00770
+  zh: c4f8269ce0e23dfb
+/deepseek-ai-dsh-tool-fs-transfer/known-limitations-and-deferred-work/dev-note:
+  en: 44e28356e6eec64b
+  zh: c960049c2cb34f0c

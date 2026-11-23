@@ -7,8 +7,8 @@
 
 import { randomUUID } from 'node:crypto'
 import { createReadStream, realpath as realpathCallback } from 'node:fs'
-import { chmod, link, lstat, mkdir, open, readFile, readdir, rename, rm, stat } from 'node:fs/promises'
-import type { BigIntStats, Dirent, Stats } from 'node:fs'
+import { chmod, copyFile, link, lstat, mkdir, open, readFile, readdir, rename, rm, stat } from 'node:fs/promises'
+import { constants as fsConstants, type BigIntStats, type Dirent, type Stats } from 'node:fs'
 import { basename, dirname, isAbsolute, join, resolve, sep } from 'node:path'
 import { TextDecoder, promisify } from 'node:util'
 import { homedir } from 'node:os'
@@ -106,6 +106,8 @@ export interface FsIoInternals {
   inspectTemp?: (paths: { stagingDir: string; tempPath: string }) => void | Promise<void>
   /** Test hook after raw-read stat preflight and before bounded content I/O. */
   inspectReadBytesAfterStat?: (target: LocalTarget) => void | Promise<void>
+  /** Override the byte-copy boundary used by {@link copyFileAtomic}. */
+  copyFile?: (source: string, destination: string) => Promise<void>
 }
 
 /** A resolved local path: the absolute path shown to callers and its realpath identity. */
@@ -685,6 +687,150 @@ export async function writeFileAtomic(
     }
     if (!stagingCreated) throw failure
     return removeStagingDirOrThrow(stagingDir, failure, removeStagingDir)
+  }
+}
+
+/**
+ * Publish a byte-exact copy of `sourcePath` at `absolutePath` through the same
+ * owner-only staging and no-replace/atomic-replace publication as
+ * {@link writeFileAtomic}. The source's mode carries to a created destination;
+ * a replaced Windows destination keeps its DACL. The source is never modified.
+ * @param sourcePath - resolved file identity to copy.
+ * @param absolutePath - resolved destination file identity.
+ * @param mode - source file mode to apply to the staged copy.
+ * @param signal - aborts before publication takes effect.
+ * @param internals - optional copy/publication fault injection.
+ * @param options - caller-facing display path and destination intent.
+ * @returns once the destination is committed.
+ */
+export async function copyFileAtomic(
+  sourcePath: string,
+  absolutePath: string,
+  mode: number | undefined,
+  signal: AbortSignal | undefined,
+  internals: FsIoInternals = {},
+  options: { displayPath?: string; createIfAbsent?: boolean; existingDestination?: boolean } = {},
+): Promise<void> {
+  const displayPath = options.displayPath ?? absolutePath
+  const existingDestination = options.existingDestination ?? false
+  throwIfAborted(signal, 'copy')
+  const directory = dirname(absolutePath)
+  try { await mkdir(directory, { recursive: true }) } catch (error) { throw writeIoError(displayPath, error) }
+
+  throwIfAborted(signal, 'copy')
+  const stagingDirName = internals.tempDirName?.(absolutePath) ?? `.${basename(absolutePath)}.${process.pid}.${randomUUID()}.tmpdir`
+  const stagingDir = join(directory, stagingDirName)
+  const tempName = internals.tempName?.(absolutePath) ?? `${basename(absolutePath)}.tmp`
+  const tempPath = join(stagingDir, tempName)
+  const platform = internals.platform ?? process.platform
+  const copyBytes = internals.copyFile ?? copyFile
+  const copyFileDacl = internals.copyFileDacl ?? copyFileDaclWin32
+  const replaceFile = internals.replaceFile ?? replaceFileWin32
+  const linkFile = internals.linkFile ?? link
+  const inspectPublicationTarget = internals.inspectPublicationTarget
+    ?? (path => lstat(path, { bigint: true }))
+  const removeStagingDir = internals.removeStagingDir
+    ?? (path => rm(path, { recursive: true, force: true }))
+  let handle: Awaited<ReturnType<typeof open>> | undefined
+  let stagingCreated = false
+  try {
+    await mkdir(stagingDir, { mode: 0o700 })
+    stagingCreated = true
+    await chmod(stagingDir, 0o700)
+
+    await copyBytes(sourcePath, tempPath)
+    handle = await open(tempPath, 'r+', 0o600)
+    await handle.chmod(0o600)
+    if (platform === 'win32' && existingDestination) {
+      await copyFileDacl(absolutePath, tempPath)
+    }
+    await handle.sync()
+    await internals.inspectTemp?.({ stagingDir, tempPath })
+    if (mode !== undefined) await handle.chmod(mode)
+    await handle.close()
+    handle = undefined
+
+    throwIfAborted(signal, 'copy')
+    if (options.createIfAbsent) {
+      try {
+        await linkFile(tempPath, absolutePath)
+      } catch (error: unknown) {
+        // A volume that cannot hard-link still gets no-replace semantics from
+        // COPYFILE_EXCL; both paths preserve a concurrent creator.
+        if (error instanceof Error && 'code' in error
+          && (error.code === 'EXDEV' || error.code === 'EPERM' || error.code === 'ENOTSUP' || error.code === 'EMLINK')) {
+          try {
+            await copyFile(tempPath, absolutePath, fsConstants.COPYFILE_EXCL)
+          } catch (copyError: unknown) {
+            await throwGuardedCreateFailure(copyError, absolutePath, displayPath, inspectPublicationTarget)
+          }
+        } else {
+          await throwGuardedCreateFailure(error, absolutePath, displayPath, inspectPublicationTarget)
+        }
+      }
+    } else if (platform === 'win32' && existingDestination) {
+      try {
+        await replaceFile(absolutePath, tempPath)
+      } catch (error: unknown) {
+        if (!isENOENT(error)) throw error
+        await rename(tempPath, absolutePath)
+      }
+    } else {
+      await rename(tempPath, absolutePath)
+    }
+    try {
+      await removeStagingDir(stagingDir)
+    } catch (_committedStagingCleanupFailure) {
+      // The destination is committed; owner-only staging residue cannot turn that copy into a failure.
+    }
+  } catch (error: unknown) {
+    /* v8 ignore next -- abort-mid-copy needs a copyFile/signal race; the non-abort (rename/open) side is tested. */
+    let failure: unknown = isAbortError(error) ? new FsError('copy aborted', 'FS_ABORTED') : writeIoError(displayPath, error)
+    /* v8 ignore next 8 -- reached only if open/sync throws with the handle open (IO fault); close-failure is a double fault. */
+    if (handle) {
+      try {
+        await handle.close()
+      } catch (closeError: unknown) {
+        failure = new FsError(`copy failed (${errorMessage(failure)}) and temp close failed (${errorMessage(closeError)})`, 'FS_NOT_FOUND', { cause: failure })
+      }
+    }
+    if (!stagingCreated) throw failure
+    return removeStagingDirOrThrow(stagingDir, failure, removeStagingDir)
+  }
+}
+
+/**
+ * Publish `destinationPath` as a hard link to `sourcePath`, which is the
+ * no-copy path for a same-volume move: the destination appears complete or not
+ * at all, and a concurrent creator is preserved.
+ * @param sourcePath - resolved source file identity.
+ * @param destinationPath - resolved destination file identity.
+ * @param displayPath - caller-facing destination path for diagnostics.
+ * @param internals - optional link fault injection.
+ * @returns true when linked; false when the volume or host cannot hard-link
+ *   the pair, so the caller falls back to a byte copy.
+ * @throws {FsError} `FS_ALREADY_EXISTS` when the destination appeared, or an
+ *   I/O failure other than an unsupported-link condition.
+ */
+export async function tryLinkFile(
+  sourcePath: string,
+  destinationPath: string,
+  displayPath: string,
+  internals: FsIoInternals = {},
+): Promise<boolean> {
+  const linkFile = internals.linkFile ?? link
+  try {
+    await linkFile(sourcePath, destinationPath)
+    return true
+  } catch (error: unknown) {
+    if (isEEXIST(error)) {
+      throw new FsError(`cannot create "${displayPath}": file already exists`, 'FS_ALREADY_EXISTS', { cause: error })
+    }
+    if (error instanceof Error && 'code' in error
+      && (error.code === 'EXDEV' || error.code === 'EPERM' || error.code === 'ENOTSUP' || error.code === 'EMLINK')) {
+      return false
+    }
+    throw writeIoError(displayPath, error)
   }
 }
 

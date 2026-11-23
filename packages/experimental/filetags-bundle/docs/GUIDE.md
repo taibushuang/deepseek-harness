@@ -34,6 +34,15 @@ Open the right Sidebar and pick **Tags** from the guide page.
 
 A write is applied on the Host before the row refreshes. If the Host rejects it, the previous state stays and the panel reports the error.
 
+## Sort files after tagging
+
+The same bundle also provides `fs_copy` and `fs_move`, so the model can sort tagged files without decoding them:
+
+- "Move `~/Downloads/report.docx` to `~/Work/CRM/`, creating the folder."
+- "Copy this PDF into `~/Archive/2026/`."
+
+A destination must not exist. If the name is taken, the tool fails instead of overwriting; the model will choose another name. Parent folders are created. A move writes the destination first and then removes the source, and reports when the source was kept.
+
 ## Expression syntax
 
 Expressions combine tag names with `and`, `or`, `not`, and parentheses:

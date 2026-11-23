@@ -35,6 +35,7 @@ export const EXPERIMENTAL_PACKAGE_NAME_EXCEPTIONS: Readonly<Record<string, strin
   'packages/experimental/filetags': '@deepseek-ai/dsh-filetags',
   'packages/experimental/client-ui-filetags': '@deepseek-ai/dsh-client-ui-filetags',
   'packages/experimental/filetags-bundle': '@deepseek-ai/dsh-filetags-bundle',
+  'packages/experimental/tool-fs-transfer': '@deepseek-ai/dsh-tool-fs-transfer',
 } satisfies Record<`packages/experimental/${string}`, `@deepseek-ai/dsh-${string}`>
 
 /** Legacy npm namespace, allowed only in `LEGACY_PREFIXED_EXPERIMENTAL_PACKAGE_DIRECTORIES`. */

@@ -32,6 +32,7 @@ This table connects model-visible tool names to the plugin package and service s
 | `@deepseek-ai/dsh-tool-str-replace-editor` | `str_replace_editor` | `ctx.tools`, `ctx.fs` | `tool/call`, `fs/observed after view presence/absence, edit absence, or successful mutation`, `tool/result` | - | Standalone view/create/unique literal replace/line insert tool over the filesystem seam; it composes with any shell or terminal API. |
 | `@deepseek-ai/dsh-tool-fs` | `apply_patch`, `edit`, `read`, `read_image`, `write` | `ctx.workingDirectory`, `ctx.tools`, `ctx.fs`, `ctx.systemPrompt`, `ctx.attachments (image-tool registration)`, `ctx.llm + an image-capable route (image-tool execution)` | `tool/call`, `fs/write-intent, fs/edit-intent, or fs/delete-intent for mutations`, `fs/observed after read presence/absence or successful file operation`, `durable attachment (read_image)`, `tool/result` | - | The read-before-write/edit policy is added by `@deepseek-ai/dsh-fs-observation-policy` (an `fs/*` event-gate plugin, no schema change); the shipped compositions leave its row disabled, so mutations are unconditional unless a deployment enables it. The image tool is not registered without `ctx.attachments`; its schema is route-independent, and execution refuses unless the exact routed model declares image input. `apply_patch` registers only with `applyPatch: true`; the catalog sets it so the schema is documented. `dsh-base` and the Web `standard` preset enable it; the Web `ptc` and `cordis` presets and the PTC overlay state `applyPatch: false`. |
 | `@deepseek-ai/dsh-office-text` | `office_text` | `ctx.tools`, `ctx.fs`, `ctx.workingDirectory` | `tool/call`, `tool/result` | - | Reads the text layer of OOXML and PDF documents without a Headless Office install; the same extractor is provided as `ctx.officeText`. OOXML parts are decompressed under per-part and combined budgets, one read is capped by bytes, and returned text is capped by characters. |
+| `@deepseek-ai/dsh-file-organizer` | `organize_apply`, `organize_history`, `organize_preview`, `organize_undo` | `ctx.tools`, `ctx.fs`, `ctx.workingDirectory`, `ctx.storageDomain`, `ctx.fileTags (optional, for tags)` | `tool/call`, `journal: file_organizer storage domain batches`, `filesystem moves`, `file tag links when filetags is mounted`, `tool/result` | - | Rules are ordered basename globs; the first match wins and each destination is checked before it is created. `organize_apply` requires an explicit confirmation, every move is no-overwrite, and `organize_undo` reverses completed moves. Destination root, fallback target, and per-rule tags make a scheduled inbox pass possible without a new scheduler. |
 | `@deepseek-ai/dsh-tool-fs-transfer` | `fs_copy`, `fs_move` | `ctx.fs`, `ctx.tools`, `ctx.workingDirectory`, `ctx.sandboxPolicy (confining filesystems)`, `ctx.approval (escalation)` | `tool/call`, `filesystem destination publication`, `source removal on move`, `tool/result` | - | Byte-exact copy and move over `ctx.fs.transferFile`: no text decoding, no destination overwrite, and parent directories created by the provider. Under a confining filesystem the schemas advertise `sandbox_permissions` and `justification`, using the same approval and denial vocabulary as `write`, `edit`, and `apply_patch`. |
 | `@deepseek-ai/dsh-tool-fs-search` | `glob`, `grep` | `ctx.workingDirectory`, `ctx.tools`, `ctx.subprocess`, `ctx.systemPrompt` | `tool/call`, `tool/result` | - | glob and grep are unconditional discovery tools that spawn the packaged ripgrep binary (`@vscode/ripgrep`) through ctx.subprocess as ordinary foreground calls (never background jobs) — no host `rg` install and no shell layer. The catalog uses `sampleOverCapGlobResults: true`; deployments must choose that behavior explicitly. Capped results save the complete formatted list through the optional ctx.spillStore backend; returned locators are follow-up-readable/searchable when the backend exposes local paths in co-located deployments. |
 | `@deepseek-ai/dsh-tool-terminal` | `terminal_close`, `terminal_list`, `terminal_open`, `terminal_read`, `terminal_send`, `terminal_signal` | `ctx.workingDirectory`, `ctx.tools`, `ctx.terminals`, `ctx.systemPrompt`, `ctx.jobs at call time for run_in_background` | `tool/call`, `tool/result` | - | The six terminal tools are opt-in and complement one-shot shell/filesystem tools. `terminal_send(run_in_background: true)` registers with `ctx.jobs`; TUI, named key sequences, BEL, resize, auto-start, and cross-agent sharing are absent from the schema. |
@@ -1281,6 +1282,138 @@ Read the plain text of a Word (.docx), PowerPoint (.pptx), Excel (.xlsx), or PDF
 Source: [`packages/experimental/office-text/src/index.ts`](../packages/experimental/office-text/src/index.ts)
 
 Reads the text layer of OOXML and PDF documents without a Headless Office install; the same extractor is provided as `ctx.officeText`. OOXML parts are decompressed under per-part and combined budgets, one read is capped by bytes, and returned text is capped by characters.
+
+<a id="deepseek-aidsh-file-organizer"></a>
+
+## `@deepseek-ai/dsh-file-organizer`
+
+### `organize_apply`
+
+Execute a planned organization batch. Every move is re-checked; existing destinations are never overwritten. Requires confirm: true after the user has seen the preview.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "batch_id": {
+      "type": "string",
+      "description": "Batch id returned by organize_preview."
+    },
+    "confirm": {
+      "type": "boolean",
+      "description": "Must be true; confirms the user approved the previewed moves."
+    }
+  },
+  "required": [
+    "batch_id",
+    "confirm"
+  ]
+}
+```
+
+Source: [`packages/experimental/file-organizer/src/index.ts`](../packages/experimental/file-organizer/src/index.ts)
+
+### `organize_history`
+
+List recent organization batches with their directories, statuses, and move counts.
+
+```json
+{
+  "type": "object",
+  "properties": {}
+}
+```
+
+Source: [`packages/experimental/file-organizer/src/index.ts`](../packages/experimental/file-organizer/src/index.ts)
+
+### `organize_preview`
+
+Plan how direct files in one directory would move into category subdirectories. Rules are ordered: the first glob matching a file name wins, and others_target receives the rest. Nothing moves until organize_apply.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "directory": {
+      "type": "string",
+      "description": "Directory whose direct files to organize (relative paths use the Session directory)."
+    },
+    "rules": {
+      "type": "array",
+      "description": "Ordered rules; the first matching rule wins.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "pattern": {
+            "type": "string",
+            "description": "Glob matched against the file name, such as *.pdf."
+          },
+          "target": {
+            "type": "string",
+            "description": "Relative subdirectory below destination_root to move matches into, such as documents."
+          },
+          "tags": {
+            "type": "array",
+            "description": "Tags attached to each moved file, when filetags is mounted.",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "pattern",
+          "target"
+        ]
+      }
+    },
+    "destination_root": {
+      "type": "string",
+      "description": "Directory the rule targets live under. Defaults to the organized directory; set it to move inbox files into another tree."
+    },
+    "others_target": {
+      "type": "string",
+      "description": "Relative subdirectory for files that match no rule. Omit to leave them in place."
+    },
+    "others_tags": {
+      "type": "array",
+      "description": "Tags for files matching no rule.",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "directory",
+    "rules"
+  ]
+}
+```
+
+Source: [`packages/experimental/file-organizer/src/index.ts`](../packages/experimental/file-organizer/src/index.ts)
+
+### `organize_undo`
+
+Reverse the completed moves of an applied organization batch. A file whose original path is occupied is left in place and reported.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "batch_id": {
+      "type": "string",
+      "description": "Applied batch id to reverse."
+    }
+  },
+  "required": [
+    "batch_id"
+  ]
+}
+```
+
+Source: [`packages/experimental/file-organizer/src/index.ts`](../packages/experimental/file-organizer/src/index.ts)
+
+Rules are ordered basename globs; the first match wins and each destination is checked before it is created. `organize_apply` requires an explicit confirmation, every move is no-overwrite, and `organize_undo` reverses completed moves. Destination root, fallback target, and per-rule tags make a scheduled inbox pass possible without a new scheduler.
 
 <a id="deepseek-aidsh-tool-fs-transfer"></a>
 

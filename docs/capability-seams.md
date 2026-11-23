@@ -342,6 +342,8 @@ flowchart LR
   svc_fileTags["ctx.fileTags<br/>File tag store"]
   pkg_experimental_office_text["experimental-office-text"]
   svc_officeText["ctx.officeText<br/>Office document text"]
+  pkg_experimental_file_organizer["experimental-file-organizer"]
+  svc_fileOrganizer["ctx.fileOrganizer<br/>Folder organizer"]
   pkg_action_cards --> svc_actionCards
   pkg_agent --> svc_agents
   pkg_agent_default_model --> svc_agentDefaultModel
@@ -404,6 +406,7 @@ flowchart LR
   pkg_experimental_client_ui_forge --> svc_forgePanel
   pkg_experimental_computer_use_cua_driver_mcp --> svc_computerUse
   pkg_experimental_computer_use_cua_driver_native --> svc_computerUse
+  pkg_experimental_file_organizer --> svc_fileOrganizer
   pkg_experimental_filetags --> svc_fileTags
   pkg_experimental_forge --> svc_forge
   pkg_experimental_forge_github --> svc_forge
@@ -831,5 +834,6 @@ flowchart LR
 | `ctx.liveshareShares` | `service` | [`experimental-liveshare`](../packages/experimental/liveshare) | - | - | - | Publishes the owner share-management operations as one Typert Remote namespace that the owner client face calls; every method delegates to the same operations the same-origin routes used. |
 | `ctx.fileTags` | `service` | `experimental-filetags` | - | - | - | Owns the central tag database and the four tag tools; the right Sidebar panel reads and writes the same store through the generated Remote namespace. |
 | `ctx.officeText` | `service` | `experimental-office-text` | - | - | - | Extracts the text layer of Word, PowerPoint, Excel, and PDF documents under byte, character, and page caps; the office_text tool is its model-facing consumer. |
+| `ctx.fileOrganizer` | `service` | `experimental-file-organizer` | - | - | - | Owns rule compilation, no-overwrite moves, undo, and the durable batch journal; the four organize_* tools are its model-facing consumers, and optional tag writing delegates to fileTags. |
 
 Maintenance mode: hybrid: services are discovered from Cordis declarations; interface/implementation/consumer roles are classified in `scripts/gen-doc-graphs.ts` with a completeness guard.

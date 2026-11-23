@@ -691,6 +691,21 @@ export async function writeFileAtomic(
 }
 
 /**
+ * Create the destination's parent directory for a transfer. Missing
+ * intermediate directories are created with the process default mode; I/O
+ * failures use the same taxonomy as writes.
+ * @param absolutePath - resolved destination file.
+ * @param displayPath - caller-facing destination path.
+ */
+export async function ensureParentDirectory(absolutePath: string, displayPath: string): Promise<void> {
+  try {
+    await mkdir(dirname(absolutePath), { recursive: true })
+  } catch (error: unknown) {
+    throw writeIoError(displayPath, error)
+  }
+}
+
+/**
  * Publish a byte-exact copy of `sourcePath` at `absolutePath` through the same
  * owner-only staging and no-replace/atomic-replace publication as
  * {@link writeFileAtomic}. The source's mode carries to a created destination;

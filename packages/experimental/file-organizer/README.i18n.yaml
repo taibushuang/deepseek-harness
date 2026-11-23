@@ -1,0 +1,46 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write packages/experimental/file-organizer/README.md
+/:
+  en: c267d14f08f5f455
+  zh: 90f4e9a44c8521a6
+/deepseek-ai-dsh-file-organizer:
+  en: 2475fd3a3ff5ec4a
+  zh: f36a34940d9d3bac
+/deepseek-ai-dsh-file-organizer/summary:
+  en: 483953e2ab48ed24
+  zh: 23e20b311248b168
+/deepseek-ai-dsh-file-organizer/table-of-contents:
+  en: 7d4db479f8f078b4
+  zh: d5b58665bda4191b
+/deepseek-ai-dsh-file-organizer/use-this-package:
+  en: 15ee335d72fee2a0
+  zh: 164498a7dda88fb6
+/deepseek-ai-dsh-file-organizer/understand-the-implementation:
+  en: 6c6179c28a545614
+  zh: c19e9e90bb155981
+/deepseek-ai-dsh-file-organizer/scheduled-inbox-pass:
+  en: 0198ec03ea90cba9
+  zh: b1d9af59965e7dff
+/deepseek-ai-dsh-file-organizer/model-experience:
+  en: 215e7ba838619b7b
+  zh: a311da3843709f90
+/deepseek-ai-dsh-file-organizer/model-experience/organizer-tools:
+  en: f6549bc19747f5a3
+  zh: e2e6481d000f54ca
+/deepseek-ai-dsh-file-organizer/model-experience/organizer-tools/what-the-model-sees:
+  en: 7fec82de46aa1bc8
+  zh: f2edbc1aaf9ead28
+/deepseek-ai-dsh-file-organizer/model-experience/organizer-tools/token-effect:
+  en: 6f39d250b30eb01c
+  zh: a274dc9075b85a3e
+/deepseek-ai-dsh-file-organizer/model-experience/organizer-tools/kv-cache-effect:
+  en: 4afb13b04fafa2f5
+  zh: 792d96b150cb9fbf
+/deepseek-ai-dsh-file-organizer/known-limitations-and-deferred-work:
+  en: 380b74bef09a7366
+  zh: 53cc28aeb0c68674
+/deepseek-ai-dsh-file-organizer/known-limitations-and-deferred-work/dev-note:
+  en: c522a2b7729ad0f9
+  zh: ad2561cdbdbca086

@@ -344,6 +344,8 @@ flowchart LR
   svc_fileTags["ctx.fileTags<br/>File tag store"]
   pkg_experimental_office_text["experimental-office-text"]
   svc_officeText["ctx.officeText<br/>Office document text"]
+  pkg_experimental_file_organizer["experimental-file-organizer"]
+  svc_fileOrganizer["ctx.fileOrganizer<br/>Folder organizer"]
   pkg_action_cards --> svc_actionCards
   pkg_agent --> svc_agents
   pkg_agent_default_model --> svc_agentDefaultModel
@@ -406,6 +408,7 @@ flowchart LR
   pkg_experimental_client_ui_forge --> svc_forgePanel
   pkg_experimental_computer_use_cua_driver_mcp --> svc_computerUse
   pkg_experimental_computer_use_cua_driver_native --> svc_computerUse
+  pkg_experimental_file_organizer --> svc_fileOrganizer
   pkg_experimental_filetags --> svc_fileTags
   pkg_experimental_forge --> svc_forge
   pkg_experimental_forge_github --> svc_forge
@@ -833,5 +836,6 @@ flowchart LR
 | `ctx.liveshareShares` | `service` | [`experimental-liveshare`](../packages/experimental/liveshare) | - | - | - | 以单个 Typert Remote 命名空间发布 owner 分享管理操作，供 owner 客户端面调用；每个方法都委托给同源路由原先使用的同一组操作。 |
 | `ctx.fileTags` | `service` | `experimental-filetags` | - | - | - | 拥有集中标签数据库与四个标签工具；右侧栏面板通过生成的远程命名空间读写同一存储。 |
 | `ctx.officeText` | `service` | `experimental-office-text` | - | - | - | 在字节、字符与页数上限内抽取 Word、PowerPoint、Excel 与 PDF 文档的文本层；`office_text` 工具是它的模型侧消费者。 |
+| `ctx.fileOrganizer` | `service` | `experimental-file-organizer` | - | - | - | 拥有规则编译、无覆盖移动、撤销与持久批次 journal；四个 organize_* 工具是它的模型侧消费者，可选标签写入委托给 fileTags。 |
 
 维护模式：混合模式。服务从 Cordis 声明中发现；接口、实现和消费方角色在 `scripts/gen-doc-graphs.ts` 中分类，并设有完整性守卫。

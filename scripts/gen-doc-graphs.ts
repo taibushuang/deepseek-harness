@@ -1078,6 +1078,13 @@ const SERVICE_ROLES: ServiceRole[] = [
     mode: 'service',
     note: 'Extracts the text layer of Word, PowerPoint, Excel, and PDF documents under byte, character, and page caps; the office_text tool is its model-facing consumer.',
   },
+  {
+    key: 'fileOrganizer',
+    pkg: 'experimental-file-organizer',
+    title: 'Folder organizer',
+    mode: 'service',
+    note: 'Owns rule compilation, no-overwrite moves, undo, and the durable batch journal; the four organize_* tools are its model-facing consumers, and optional tag writing delegates to fileTags.',
+  },
 ]
 
 function generatedHeader(title: string): string[] {

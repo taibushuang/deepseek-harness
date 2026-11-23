@@ -36,6 +36,7 @@
 | `@deepseek-ai/dsh-tool-str-replace-editor` | `str_replace_editor` | `ctx.tools`、`ctx.fs` | `tool/call`、`fs/observed after view presence/absence, edit absence, or successful mutation`、`tool/result` | - | 基于文件系统 seam 的独立查看／创建／唯一字面量替换／按行插入工具；可与任何 shell 或终端接口组合。 |
 | `@deepseek-ai/dsh-tool-fs` | `apply_patch`、`edit`、`read`、`read_image`、`write` | `ctx.workingDirectory`、`ctx.tools`、`ctx.fs`、`ctx.systemPrompt`、`ctx.attachments (image-tool registration)`、`ctx.llm + an image-capable route (image-tool execution)` | `tool/call`、`fs/write-intent, fs/edit-intent, or fs/delete-intent for mutations`、`fs/observed after read presence/absence or successful file operation`、`durable attachment (read_image)`、`tool/result` | - | 先读后写／编辑策略由 `@deepseek-ai/dsh-fs-observation-policy` 添加；它是一个 `fs/*` 事件门禁插件，不会改变 schema。随发行版交付的组合保持该行禁用，因此除非部署启用它，修改都是无条件的。没有 `ctx.attachments` 时图片工具不会注册；其 schema 与路由无关，执行时除非确切路由的模型声明图片输入，否则拒绝。`apply_patch` 仅在 `applyPatch: true` 时注册；目录为了记录其 schema 而开启该开关。`dsh-base` 与 Web 的 `standard` preset 开启它；Web 的 `ptc`、`cordis` preset 以及 PTC overlay 显式写出 `applyPatch: false`。 |
 | `@deepseek-ai/dsh-office-text` | `office_text` | `ctx.tools`、`ctx.fs`、`ctx.workingDirectory` | `tool/call`、`tool/result` | - | 无需无头 Office 即可读取 OOXML 与 PDF 文档的文本层；同一抽取器以 `ctx.officeText` 提供。OOXML 部件按单部件与总量预算解压，单次读取受字节上限约束，返回文本受字符上限约束。 |
+| `@deepseek-ai/dsh-file-organizer` | `organize_apply`、`organize_history`、`organize_preview`、`organize_undo` | `ctx.tools`、`ctx.fs`、`ctx.workingDirectory`、`ctx.storageDomain`、`ctx.fileTags (optional, for tags)` | `tool/call`、`journal: file_organizer storage domain batches`、`filesystem moves`、`file tag links when filetags is mounted`、`tool/result` | - | 规则是有序的文件名 glob；首个匹配生效，每个目标在创建前都会检查。`organize_apply` 需要明确确认，每次移动都无覆盖，`organize_undo` 逆向恢复已完成的移动。目标根目录、兜底目标与逐规则标签让定时收件箱整理无需新的调度器。 |
 | `@deepseek-ai/dsh-tool-fs-transfer` | `fs_copy`、`fs_move` | `ctx.fs`、`ctx.tools`、`ctx.workingDirectory`、`ctx.sandboxPolicy (confining filesystems)`、`ctx.approval (escalation)` | `tool/call`、`filesystem destination publication`、`source removal on move`、`tool/result` | - | 基于 `ctx.fs.transferFile` 的逐字节复制与移动：不解码文本、不覆盖目标，父目录由提供方创建。在限制型文件系统下，schema 广告 `sandbox_permissions` 与 `justification`，复用 `write`、`edit`、`apply_patch` 的审批与拒绝词汇。 |
 | `@deepseek-ai/dsh-tool-fs-search` | `glob`、`grep` | `ctx.workingDirectory`、`ctx.tools`、`ctx.subprocess`、`ctx.systemPrompt` | `tool/call`、`tool/result` | - | glob 和 grep 是无条件可用的发现工具，通过 ctx.subprocess spawn 随包提供的 ripgrep 二进制文件（`@vscode/ripgrep`），并作为普通前台调用运行，绝不作为后台任务；无需在宿主机安装 `rg`，也不经过 shell 层。本目录使用 `sampleOverCapGlobResults: true`；部署必须显式选择该行为。结果超过上限时，会通过可选的 ctx.spillStore 后端保存完整的格式化列表；在共置部署中，如果后端公开本地路径，返回的定位信息可供后续读取／搜索。 |
 | `@deepseek-ai/dsh-tool-terminal` | `terminal_close`、`terminal_list`、`terminal_open`、`terminal_read`、`terminal_send`、`terminal_signal` | `ctx.workingDirectory`、`ctx.tools`、`ctx.terminals`、`ctx.systemPrompt`、`ctx.jobs at call time for run_in_background` | `tool/call`、`tool/result` | - | 这 6 个终端工具需要选择启用，用于补充一次性 bash／文件系统工具。`terminal_send(run_in_background: true)` 会注册到 `ctx.jobs`；schema 不包含 TUI、具名按键序列、BEL、调整尺寸、自动启动和跨 agent 共享。 |
@@ -1287,6 +1288,138 @@ pwsh 工具是 Windows 组合中 bash 执行器 seam 的 PowerShell 方言消费
 Source: [`packages/experimental/office-text/src/index.ts`](../packages/experimental/office-text/src/index.ts)
 
 无需无头 Office 即可读取 OOXML 与 PDF 文档的文本层；同一抽取器以 `ctx.officeText` 提供。OOXML 部件按单部件与总量预算解压，单次读取受字节上限约束，返回文本受字符上限约束。
+
+<a id="deepseek-aidsh-file-organizer"></a>
+
+## `@deepseek-ai/dsh-file-organizer`
+
+### `organize_apply`
+
+执行一个已计划的整理批次。每次移动都会复查；已存在的目标绝不会被覆盖。需要 confirm: true，表示用户已查看预览。
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "batch_id": {
+      "type": "string",
+      "description": "Batch id returned by organize_preview."
+    },
+    "confirm": {
+      "type": "boolean",
+      "description": "Must be true; confirms the user approved the previewed moves."
+    }
+  },
+  "required": [
+    "batch_id",
+    "confirm"
+  ]
+}
+```
+
+Source: [`packages/experimental/file-organizer/src/index.ts`](../packages/experimental/file-organizer/src/index.ts)
+
+### `organize_history`
+
+列出最近的整理批次及其目录、状态与移动数量。
+
+```json
+{
+  "type": "object",
+  "properties": {}
+}
+```
+
+Source: [`packages/experimental/file-organizer/src/index.ts`](../packages/experimental/file-organizer/src/index.ts)
+
+### `organize_preview`
+
+预览一个目录的直接文件将如何移入分类子目录。规则有序：第一个匹配文件名的 glob 生效，others_target 接收其余文件。在 organize_apply 之前不会移动任何文件。
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "directory": {
+      "type": "string",
+      "description": "Directory whose direct files to organize (relative paths use the Session directory)."
+    },
+    "rules": {
+      "type": "array",
+      "description": "Ordered rules; the first matching rule wins.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "pattern": {
+            "type": "string",
+            "description": "Glob matched against the file name, such as *.pdf."
+          },
+          "target": {
+            "type": "string",
+            "description": "Relative subdirectory below destination_root to move matches into, such as documents."
+          },
+          "tags": {
+            "type": "array",
+            "description": "Tags attached to each moved file, when filetags is mounted.",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "pattern",
+          "target"
+        ]
+      }
+    },
+    "destination_root": {
+      "type": "string",
+      "description": "Directory the rule targets live under. Defaults to the organized directory; set it to move inbox files into another tree."
+    },
+    "others_target": {
+      "type": "string",
+      "description": "Relative subdirectory for files that match no rule. Omit to leave them in place."
+    },
+    "others_tags": {
+      "type": "array",
+      "description": "Tags for files matching no rule.",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "directory",
+    "rules"
+  ]
+}
+```
+
+Source: [`packages/experimental/file-organizer/src/index.ts`](../packages/experimental/file-organizer/src/index.ts)
+
+### `organize_undo`
+
+逆向恢复一个已执行整理批次完成的移动。原路径已被占用的文件保持原位并报告。
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "batch_id": {
+      "type": "string",
+      "description": "Applied batch id to reverse."
+    }
+  },
+  "required": [
+    "batch_id"
+  ]
+}
+```
+
+Source: [`packages/experimental/file-organizer/src/index.ts`](../packages/experimental/file-organizer/src/index.ts)
+
+规则是有序的文件名 glob；首个匹配生效，每个目标在创建前都会检查。`organize_apply` 需要明确确认，每次移动都无覆盖，`organize_undo` 逆向恢复已完成的移动。目标根目录、兜底目标与逐规则标签让定时收件箱整理无需新的调度器。
 
 <a id="deepseek-aidsh-tool-fs-transfer"></a>
 

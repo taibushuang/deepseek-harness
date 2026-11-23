@@ -1,6 +1,6 @@
 {
   "name": "@deepseek-ai/dsh-filetags-bundle",
-  "description": "Optional file-tag composition: the central-database tag tools and the right Sidebar tag panel",
+  "description": "Optional file-tag composition: the central-database tag tools, the right Sidebar tag panel, office text reading, and the folder organizer",
   "version": "0.2.2-rc.5",
   "publishConfig": {
     "access": "public"
@@ -44,6 +44,7 @@
   },
   "dependencies": {
     "@deepseek-ai/dsh-client-ui-filetags": "workspace:*",
+    "@deepseek-ai/dsh-file-organizer": "workspace:*",
     "@deepseek-ai/dsh-filetags": "workspace:*",
     "@deepseek-ai/dsh-office-text": "workspace:*",
     "@deepseek-ai/dsh-tool-fs-transfer": "workspace:*"

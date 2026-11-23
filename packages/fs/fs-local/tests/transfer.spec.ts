@@ -1,5 +1,5 @@
 /** Byte-exact copy/move through the local provider: binary content, guards, and partial outcomes. */
-import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises'
+import { chmod, mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Context } from '@deepseek-ai/cordis'
@@ -121,6 +121,30 @@ describe('move', () => {
     expect(outcome).toMatchObject({ operation: 'create', size: 3, sourceDeleted: true })
     expect(await bytes('moved.bin')).toEqual(Buffer.from([7, 8, 9]))
     await expect(stat(join(dir, 'source.bin'))).rejects.toMatchObject({ code: 'ENOENT' })
+  })
+
+  it('creates missing destination parents for a move', async () => {
+    const source = await binary('source.bin', [4])
+    const outcome = await fs.transferFile(source, await fs.resolve('nested/deep/moved.bin'), {
+      move: true, expectedDestination: { kind: 'createIfAbsent' },
+    })
+    expect(outcome.sourceDeleted).toBe(true)
+    expect(await bytes('nested/deep/moved.bin')).toEqual(Buffer.from([4]))
+  })
+
+  it('reports a destination whose parent cannot be created', async () => {
+    const source = await binary('source.bin', [4])
+    const locked = join(dir, 'locked')
+    await mkdir(locked)
+    await chmod(locked, 0o500)
+    try {
+      await expect(fs.transferFile(source, await fs.resolve('locked/moved.bin'), {
+        move: true, expectedDestination: { kind: 'createIfAbsent' },
+      })).rejects.toMatchObject({ code: 'FS_PERMISSION_DENIED' })
+    } finally {
+      await chmod(locked, 0o700)
+    }
+    expect(await bytes('source.bin')).toEqual(Buffer.from([4]))
   })
 
   it('falls back to a byte copy when the volume cannot hard-link', async () => {

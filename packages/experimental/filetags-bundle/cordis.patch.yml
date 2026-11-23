@@ -9,3 +9,5 @@
       name: '@deepseek-ai/dsh-tool-fs-transfer'
     - id: office-text
       name: '@deepseek-ai/dsh-office-text'
+    - id: file-organizer
+      name: '@deepseek-ai/dsh-file-organizer'

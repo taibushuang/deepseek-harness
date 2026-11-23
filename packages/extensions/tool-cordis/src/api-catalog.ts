@@ -1277,6 +1277,37 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'fileOrganizer',
+    summary: 'Rule-driven folder organizer over one storage domain.',
+    description: 'Rule-driven folder organizer over one storage domain.',
+    methods: [
+      {
+        signature: 'async preview(request: PreviewRequest, signal?: AbortSignal): Promise<PreviewResult>',
+        description: 'Plan one directory without touching any file.',
+        parameters: [{ name: 'request', description: 'directory and rules.' }, { name: 'signal', description: 'caller cancellation.' }],
+        returns: 'the stored batch summary.',
+      },
+      {
+        signature: 'async apply(batchId: string, signal?: AbortSignal): Promise<BatchResult>',
+        description: 'Execute one planned batch.',
+        parameters: [{ name: 'batchId', description: 'batch to apply.' }, { name: 'signal', description: 'caller cancellation checked between moves.' }],
+        returns: 'the terminal status and per-move outcomes.',
+      },
+      {
+        signature: 'async undo(batchId: string, signal?: AbortSignal): Promise<BatchResult>',
+        description: 'Reverse every move an applied batch completed.',
+        parameters: [{ name: 'batchId', description: 'batch to undo.' }, { name: 'signal', description: 'caller cancellation checked between moves.' }],
+        returns: 'the terminal status and per-move outcomes.',
+      },
+      {
+        signature: 'async history(): Promise<readonly BatchSummary[]>',
+        description: 'List recent batches, newest first.',
+        parameters: [],
+        returns: 'batch summaries capped by configuration.',
+      },
+    ],
+  },
+  {
     key: 'fileReferences',
     summary: 'Host capability for cancellable file-reference discovery.',
     description: 'Host capability for cancellable file-reference discovery.',
@@ -6700,6 +6731,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export interface BashEnvVariableInfo extends BashEnvVariable {\n    contributor: string;\n    key: DshEnvironmentKey;\n}',
   },
   {
+    name: 'BatchResult',
+    declaration: 'export interface BatchResult {\n    readonly batchId: string;\n    readonly status: OrganizeBatchRecord[\'status\'];\n    readonly outcomes: readonly MoveOutcome[];\n    readonly done: number;\n    readonly failed: number;\n}',
+  },
+  {
+    name: 'BatchSummary',
+    declaration: 'export interface BatchSummary {\n    readonly batchId: string;\n    readonly directory: string;\n    readonly status: OrganizeBatchRecord[\'status\'];\n    readonly createdAt: string;\n    readonly moves: number;\n}',
+  },
+  {
     name: 'BindingOrigin',
     declaration: 'export type BindingOrigin = \'created\' | \'referenced\' | \'discovered\' | \'tracked\';',
   },
@@ -8764,6 +8803,10 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type ModTier = \'prepend\' | \'user\' | \'append\' | \'builtin\' | \'core\';',
   },
   {
+    name: 'MoveOutcome',
+    declaration: 'export interface MoveOutcome {\n    readonly from: string;\n    readonly to: string;\n    readonly status: \'done\' | \'failed\' | \'skipped\' | \'restored\' | \'reversed\' | \'undo-failed\';\n    readonly reason?: string;\n}',
+  },
+  {
     name: 'NativeFileApplication',
     declaration: 'export interface NativeFileApplication {\n    readonly id: string;\n    readonly name: string;\n    readonly default: boolean;\n    readonly icon: string | null;\n}',
   },
@@ -8880,6 +8923,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
     declaration: 'export type OptionalSessionSeq = SessionSeq | null;',
   },
   {
+    name: 'OrganizeBatchRecord',
+    declaration: 'export type OrganizeBatchRecord = z.infer<typeof organizeBatch>;',
+  },
+  {
+    name: 'OrganizeRule',
+    declaration: 'export interface OrganizeRule {\n    readonly pattern: string;\n    readonly target: string;\n    readonly tags?: readonly string[];\n}',
+  },
+  {
     name: 'OTelEventRecord',
     declaration: 'export interface OTelEventRecord {\n    eventName: string;\n    body: string;\n    timestamp: number;\n    severityNumber?: SeverityNumber;\n    attributes?: Record<string, OTelEventScalar | Record<string, OTelEventScalar>>;\n}',
   },
@@ -8970,6 +9021,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'PiAiRequestHeaderContext',
     declaration: 'export interface PiAiRequestHeaderContext extends Readonly<Pick<GenerateOptions<string>, \'provider\' | \'model\' | \'sessionId\' | \'purpose\'>> {\n    readonly baseURL: string;\n}',
+  },
+  {
+    name: 'PlannedMove',
+    declaration: 'export interface PlannedMove {\n    readonly from: string;\n    readonly to: string;\n    readonly tags?: readonly string[];\n}',
+  },
+  {
+    name: 'PlannedSkip',
+    declaration: 'export interface PlannedSkip {\n    readonly path: string;\n    readonly reason: string;\n}',
   },
   {
     name: 'PlatformSession',
@@ -9126,6 +9185,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'PreToolDecision',
     declaration: 'export type PreToolDecision = {\n    kind: \'allow\';\n} | {\n    kind: \'deny\';\n    reason: string;\n    info?: ToolErrorInfo;\n} | {\n    kind: \'cancel\';\n} | {\n    kind: \'ask\';\n    reason?: string;\n    displayReason?: {\n        readonly en: string;\n        readonly [locale: string]: string;\n    };\n};',
+  },
+  {
+    name: 'PreviewRequest',
+    declaration: 'export interface PreviewRequest {\n    readonly directory: string;\n    readonly rules: readonly OrganizeRule[];\n    readonly destinationRoot?: string;\n    readonly othersTarget?: string;\n    readonly othersTags?: readonly string[];\n}',
+  },
+  {
+    name: 'PreviewResult',
+    declaration: 'export interface PreviewResult {\n    readonly batchId: string;\n    readonly directory: string;\n    readonly moves: readonly PlannedMove[];\n    readonly skipped: readonly PlannedSkip[];\n    readonly totalMoves: number;\n    readonly totalSkipped: number;\n}',
   },
   {
     name: 'Principal',

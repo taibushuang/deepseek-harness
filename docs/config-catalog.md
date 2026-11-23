@@ -1668,6 +1668,27 @@ export interface Config {
 ```
 <!-- END GENERATED config-catalog:@deepseek-ai/dsh-experimental-worktree -->
 
+<!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-file-organizer -->
+<a id="deepseek-aidsh-file-organizer"></a>
+
+## `@deepseek-ai/dsh-file-organizer`
+
+- `inject`: `tools` · `fs` · `workingDirectory` · `storageDomain`
+- `source`: [`packages/experimental/file-organizer/src/index.ts:27`](../packages/experimental/file-organizer/src/index.ts)
+
+```ts config-catalog
+/** Plugin configuration. */
+export interface Config {
+  /** Direct children considered by one preview. */
+  maxFiles: number
+  /** Moves and skips echoed in one tool result. */
+  maxDisplayEntries: number
+  /** Batches listed by history. */
+  maxHistory: number
+}
+```
+<!-- END GENERATED config-catalog:@deepseek-ai/dsh-file-organizer -->
+
 <!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-file-reference-local -->
 <a id="deepseek-aidsh-file-reference-local"></a>
 
@@ -1744,7 +1765,7 @@ export interface Config {
 
 ## `@deepseek-ai/dsh-fs-local`
 
-- `source`: [`packages/fs/fs-local/src/index.ts:55`](../packages/fs/fs-local/src/index.ts)
+- `source`: [`packages/fs/fs-local/src/index.ts:56`](../packages/fs/fs-local/src/index.ts)
 
 ```ts config-catalog
 /** Configuration for the local filesystem backend. */

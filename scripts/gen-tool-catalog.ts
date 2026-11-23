@@ -60,6 +60,8 @@ import * as ToolFs from '@deepseek-ai/dsh-tool-fs'
 import * as ToolFsSearch from '@deepseek-ai/dsh-tool-fs-search'
 import * as ToolFsTransfer from '@deepseek-ai/dsh-tool-fs-transfer'
 import * as OfficeText from '@deepseek-ai/dsh-office-text'
+import * as FileOrganizer from '@deepseek-ai/dsh-file-organizer'
+import type { DomainFacility } from '@deepseek-ai/dsh-storage-domain'
 import * as ToolStrReplaceEditor from '@deepseek-ai/dsh-tool-str-replace-editor'
 import TerminalSessionService from '@deepseek-ai/dsh-terminal'
 import * as ToolPty from '@deepseek-ai/dsh-tool-terminal'
@@ -452,6 +454,20 @@ const TOOL_PACKAGES: ToolPackage[] = [
     },
     note:
       'Reads the text layer of OOXML and PDF documents without a Headless Office install; the same extractor is provided as `ctx.officeText`. OOXML parts are decompressed under per-part and combined budgets, one read is capped by bytes, and returned text is capped by characters.',
+  },
+  {
+    pkg: '@deepseek-ai/dsh-file-organizer',
+    dir: 'file-organizer',
+    source: 'packages/experimental/file-organizer/src/index.ts',
+    requires: ['ctx.tools', 'ctx.fs', 'ctx.workingDirectory', 'ctx.storageDomain', 'ctx.fileTags (optional, for tags)'],
+    writes: ['tool/call', 'journal: file_organizer storage domain batches', 'filesystem moves', 'file tag links when filetags is mounted', 'tool/result'],
+    async mount(ctx) {
+      // Schema harvest never opens the domain; preview/apply create it on first use.
+      ctx.provide('storageDomain', {} as DomainFacility)
+      await ctx.plugin(FileOrganizer)
+    },
+    note:
+      'Rules are ordered basename globs; the first match wins and each destination is checked before it is created. `organize_apply` requires an explicit confirmation, every move is no-overwrite, and `organize_undo` reverses completed moves. Destination root, fallback target, and per-rule tags make a scheduled inbox pass possible without a new scheduler.',
   },
   {
     pkg: '@deepseek-ai/dsh-tool-fs-transfer',

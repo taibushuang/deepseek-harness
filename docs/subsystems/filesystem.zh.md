@@ -393,6 +393,46 @@ type FsErrorCode = typeof FS_ERROR_CODES[number]
 
 Generated from source by `scripts/gen-cordis-catalog.ts` (verified fresh by `pnpm run verify-cordis-catalog` in doc-sync; regenerate with `pnpm run gen-cordis-catalog`) — the language sides differ only in locale-specific paired document paths. Signature blocks use a `ts cordis-catalog` fence and keep the original source JSDoc; dispatch modes are defined in the [primer](../cordis-primer.zh.md#dispatch-modes), and the framework-inherited `ctx` API lives in [cordis-api/inherited.md](../cordis-api/inherited.md).
 
+<a id="ctxfileorganizer--fileorganizer"></a>
+
+### `ctx.fileOrganizer` — `FileOrganizer`
+
+Rule-driven folder organizer over one storage domain.
+
+```ts cordis-catalog
+/**
+ * Plan one directory without touching any file.
+ * @param request - directory and rules.
+ * @param signal - caller cancellation.
+ * @returns the stored batch summary.
+ */
+async preview(request: PreviewRequest, signal?: AbortSignal): Promise<PreviewResult>
+
+/**
+ * Execute one planned batch.
+ * @param batchId - batch to apply.
+ * @param signal - caller cancellation checked between moves.
+ * @returns the terminal status and per-move outcomes.
+ */
+async apply(batchId: string, signal?: AbortSignal): Promise<BatchResult>
+
+/**
+ * Reverse every move an applied batch completed.
+ * @param batchId - batch to undo.
+ * @param signal - caller cancellation checked between moves.
+ * @returns the terminal status and per-move outcomes.
+ */
+async undo(batchId: string, signal?: AbortSignal): Promise<BatchResult>
+
+/**
+ * List recent batches, newest first.
+ * @returns batch summaries capped by configuration.
+ */
+async history(): Promise<readonly BatchSummary[]>
+```
+
+Source: [`packages/experimental/file-organizer/src/service.ts`](../../packages/experimental/file-organizer/src/service.ts)
+
 <a id="ctxfiletags--filetags"></a>
 
 ### `ctx.fileTags` — `FileTags`

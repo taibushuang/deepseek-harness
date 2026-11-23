@@ -45,6 +45,7 @@ import {
   restoreLineEndings,
   removeFile,
   copyFileAtomic,
+  ensureParentDirectory,
   tryLinkFile,
   streamWholeText,
   writeFileAtomic,
@@ -363,6 +364,7 @@ export class LocalFileSystem extends FileSystem {
       await this.internals.inspectBeforeMutation?.(source)
       await this.internals.inspectBeforeMutation?.(destination)
       if (signal?.aborted) throw new FsError(`${verb} aborted`, 'FS_ABORTED')
+      await ensureParentDirectory(destination.targetKey, destination.displayPath)
 
       // A same-volume move publishes the destination as a hard link first, so the
       // destination is complete before the source is removed; other volumes fall

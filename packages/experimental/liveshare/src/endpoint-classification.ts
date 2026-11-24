@@ -100,6 +100,7 @@ export const VIEWER_ENDPOINT_CLASSES = {
   'remoteAccess/follow': 'always-allowed', // every Peer reads its own access snapshot before any policy
 
   // ── owner-only ───────────────────────────────────────────────────────────────
+  'session/retract': 'owner-only', // rewriting the source transcript is never a reader action
   // No reader role names these, so the conservative class is owner-only. A share's method policy
   // decides whether one installed plugin's method reaches its viewers; this table only decides what
   // the core share roles grant.

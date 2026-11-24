@@ -15,7 +15,7 @@ import type {
 import type { FileUploadReceiptId, StagedAttachment } from '@deepseek-ai/dsh-client-file-upload/types'
 import type {} from '@deepseek-ai/dsh-client-file-upload'
 import {
-  type ReasoningEffortId, createUserMessage, freezeMessage,
+  type ReasoningEffortId, createDeveloperMessage, createUserMessage, freezeMessage,
 } from '@deepseek-ai/dsh-llm'
 import type { MessageId, MessageSource } from '@deepseek-ai/dsh-llm'
 import { buildForkSeed } from '@deepseek-ai/dsh-session/fork'
@@ -48,6 +48,8 @@ import type {
   SessionPromptValue,
   SessionRenameRequest,
   SessionRenameValue,
+  SessionRetractRequest,
+  SessionRetractValue,
   SessionSelectModelRequest,
   SessionSelectModelValue,
   SessionUpdateQueueRequest,
@@ -311,6 +313,82 @@ export class SessionCommandController {
       }
     }
     return { sessionId: childId }
+  }
+
+  /**
+   * Retract one user message and every later model-visible node in place. The
+   * raw log keeps the original events; a companion empty developer message
+   * replaces the surface range, and a log-only tombstone records what vanished.
+   * @param request - Session, target user message, and edit/retract intent.
+   * @returns the exact hidden range.
+   */
+  async retract(request: SessionRetractRequest): Promise<SessionRetractValue> {
+    const agent = await this.resolveAgent(request.sessionId)
+    if (agent.status === 'running') {
+      throw new RemoteError('session/agent-busy', 'Stop the current turn before retracting a message.', { reason: 'AGENT_RUNNING' })
+    }
+    if (agent.inbox.nextTurn.length > 0 || agent.inbox.nextStep.length > 0) {
+      throw new RemoteError('session/agent-busy', 'Clear the pending queue before retracting a message.', { reason: 'INBOX_NOT_EMPTY' })
+    }
+    if (hasApiSessionSubagentOwner(agent.session)) {
+      throw apiSessionSubagentOwnershipError(request.sessionId)
+    }
+    const targetSeq = Number(request.targetSeq)
+    if (!Number.isSafeInteger(targetSeq) || targetSeq < 0) {
+      throw new RemoteError('gateway/bad-request', 'targetSeq must be a non-negative safe integer', {})
+    }
+    const targetSessionSeq = SessionSeq(targetSeq)
+    const observation = await this.ctx.sessionQuery.observeSession(request.sessionId)
+    using observed = observation
+    const target = observed.events[targetSessionSeq]
+    if (target?.seq !== targetSeq || target.type !== 'user/message'
+      || target.surfaceOp !== 'append' || target.data.source.kind !== 'user') {
+      throw new RemoteError('session/retract-unavailable', 'Only a user-authored message on the current surface can be retracted.', { reason: 'NOT_A_USER_MESSAGE' })
+    }
+    const nodes = agent.session.surface.nodes
+    const startIdx = nodes.indexOf(targetSessionSeq)
+    if (startIdx < 0) {
+      throw new RemoteError('session/retract-unavailable', 'This message is already retracted or no longer on the surface.', { reason: 'NOT_ON_SURFACE' })
+    }
+    const turn = turnRangeAt(observed.events, targetSeq)
+    if (turn === undefined || !isFirstHumanOfTurn(observed.events, targetSeq, turn.fromTurn)) {
+      throw new RemoteError('session/retract-unavailable', 'Only the first human message of a turn can be retracted.', { reason: 'NOT_TURN_START' })
+    }
+    const shadowedSeqs = nodes.slice(startIdx)
+    const endSeq = shadowedSeqs.at(-1)
+    if (endSeq === undefined) {
+      throw new RemoteError('session/retract-unavailable', 'The message has no surface range to retract.', { reason: 'EMPTY_RANGE' })
+    }
+    const coordinates = lastStepCoordinates(observed.events)
+    const message = createDeveloperMessage({ content: [], source: { kind: 'retraction' } })
+    try {
+      agent.session.append([
+        ['developer/message', { turn: coordinates.turn, step: coordinates.step, message }, {
+          surfaceOp: { op: 'replace', startSeq: targetSessionSeq, endSeq },
+          sourceEventSeqs: [...shadowedSeqs],
+        }],
+        ['session/retract', {
+          targetSeq,
+          shadowedSeqs: [...shadowedSeqs],
+          fromTurn: turn.fromTurn,
+          toTurn: turn.toTurn,
+          reason: request.reason,
+        }],
+      ])
+    } catch (error) {
+      throw new RemoteError(
+        'session/retract-unavailable',
+        `The retraction could not be recorded: ${error instanceof Error ? error.message : String(error)}`,
+        { reason: 'APPEND_FAILED' },
+      )
+    }
+    return {
+      accepted: true,
+      targetSeq,
+      fromTurn: turn.fromTurn,
+      toTurn: turn.toTurn,
+      shadowedSeqs: [...shadowedSeqs],
+    }
   }
 
   /**
@@ -579,6 +657,62 @@ export class SessionCommandController {
     }
     return undefined
   }
+}
+
+/**
+ * Resolve the Turn containing one event and the last Turn the log reached.
+ * @param events - contiguous Session log.
+ * @param targetSeq - event whose Turn is requested.
+ * @returns the containing and last Turn numbers, or undefined outside a Turn.
+ */
+function turnRangeAt(events: readonly SessionEvent[], targetSeq: number): { fromTurn: number; toTurn: number } | undefined {
+  let openTurn: number | undefined
+  let lastTurn = 0
+  let targetTurn: number | undefined
+  for (const event of events) {
+    if (event.type === 'turn/start') {
+      openTurn = event.data.turn
+      lastTurn = Math.max(lastTurn, event.data.turn)
+    } else if (event.type === 'turn/end') {
+      lastTurn = Math.max(lastTurn, event.data.turn)
+      if (openTurn === event.data.turn) openTurn = undefined
+    }
+    if (event.seq === targetSeq) targetTurn = openTurn
+  }
+  return targetTurn === undefined ? undefined : { fromTurn: targetTurn, toTurn: Math.max(lastTurn, targetTurn) }
+}
+
+/**
+ * Whether one human message is the first human input of its Turn, so retracting
+ * it cannot discard an earlier part of the same Turn.
+ * @param events - contiguous Session log.
+ * @param targetSeq - candidate user message.
+ * @param turn - Turn containing the candidate.
+ * @returns whether no earlier human prompt belongs to the same Turn.
+ */
+function isFirstHumanOfTurn(events: readonly SessionEvent[], targetSeq: number, turn: number): boolean {
+  const start = events.findLast(event => event.type === 'turn/start' && event.data.turn === turn && event.seq < targetSeq)
+  if (start === undefined) return false
+  return !events.slice(start.seq + 1, targetSeq).some(event => event.type === 'user/message'
+    && event.surfaceOp === 'append' && event.data.source.kind === 'user')
+}
+
+/**
+ * Read the last step coordinates for the synthetic developer message.
+ * @param events - contiguous Session log.
+ * @returns the last Turn and Step numbers seen, defaulting to zero.
+ */
+function lastStepCoordinates(events: readonly SessionEvent[]): { turn: number; step: number } {
+  let turn = 0
+  let step = 0
+  for (const event of events) {
+    if (event.type === 'turn/start') turn = event.data.turn
+    else if (event.type === 'step/start') {
+      turn = event.data.turn
+      step = event.data.step
+    }
+  }
+  return { turn, step }
 }
 
 /** Replace each file part with the file or image its staged receipt names. */

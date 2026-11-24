@@ -980,6 +980,13 @@ workspaceDesktop(): { name: string; available: boolean; fileManager: 'finder' | 
 @Remote('fork') async fork(request: SessionForkRequest): Promise<SessionForkValue>
 
 /**
+ * Retract one user message and every later model-visible node in place.
+ * @param request - Session, target user message, and edit/retract intent.
+ * @returns the exact hidden range.
+ */
+@Remote('retract') retract(request: SessionRetractRequest): Promise<SessionRetractValue>
+
+/**
  * Admit one prompt after explicitly resuming its Session.
  * @param request - Session identity, prompt content, source metadata, and delivery mode.
  * @param signal - caller cancellation before prompt admission begins.

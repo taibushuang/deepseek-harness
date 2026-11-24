@@ -40,6 +40,40 @@ function cachedSource<Key, Source>(
   return source
 }
 
+/** One retraction marker's hidden surface and Turn range. */
+interface RetractionRange {
+  readonly anchorSeq: number
+  readonly fromTurn: number
+  readonly toTurn: number
+  readonly shadowedSeqs: ReadonlySet<number>
+}
+
+/** Whether one Chat Node is the retraction tombstone itself. */
+function isRetractionNode(node: ChatConversationViewNode): node is ChatConversationViewNode & {
+  readonly kind: 'retraction'
+  readonly data: ChatNodeDataMap['retraction']
+} {
+  return node.kind === 'retraction'
+}
+
+/** Build the hidden range carried by one retraction tombstone. */
+function retractionRange(node: ChatConversationViewNode & { readonly data: ChatNodeDataMap['retraction'] }): RetractionRange {
+  return {
+    anchorSeq: node.anchorSeq,
+    fromTurn: node.data.fromTurn,
+    toTurn: node.data.toTurn,
+    shadowedSeqs: new Set(node.data.shadowedSeqs),
+  }
+}
+
+/** Whether a retraction covers this Chat Node's Turn or anchor. */
+function isShadowedChatNode(node: ChatConversationViewNode, ranges: readonly RetractionRange[]): boolean {
+  if (isRetractionNode(node)) return false
+  const turn = locationCoordinates(node.location).turn
+  return ranges.some(range => (turn !== undefined && turn >= range.fromTurn && turn <= range.toTurn)
+    || range.shadowedSeqs.has(node.anchorSeq))
+}
+
 /* jscpd:ignore-start -- Chat Node sources keep publication state inside the keyed Chat store. */
 class MutableChatSource<Value> {
   private readonly listeners = new Set<() => void>()
@@ -117,11 +151,18 @@ class MutableChatNodeStore implements ChatNodeStore {
   private readonly dirtyProcessKeys = new Set<string>()
   private readonly turnKinds = new Map<number, Map<string, TurnKindNodes>>()
   private readonly dirtyTurnKinds = new Set<TurnKindNodes>()
+  private retractions: readonly RetractionRange[] = []
+  private retractedFromTurnValue: number | undefined
   private valuesCache: readonly ChatConversationViewNode[] = EMPTY_LIST
   private valuesDirty = false
 
   get(key: string): ChatConversationViewNode | undefined {
     return this.byKey.get(key)
+  }
+
+  /** Smallest Turn hidden by any retraction, for the navigation rail. */
+  retractedFromTurn(): number | undefined {
+    return this.retractedFromTurnValue
   }
 
   source(key: string): ChatNodeSource {
@@ -195,9 +236,12 @@ class MutableChatNodeStore implements ChatNodeStore {
   }
 
   replace(nodes: readonly ChatConversationViewNode[]): void {
+    this.retractions = nodes.filter(isRetractionNode).map(retractionRange)
+    this.retractedFromTurnValue = this.retractions[0]?.fromTurn
+    const visible = nodes.filter(node => !isShadowedChatNode(node, this.retractions))
     const previous = new Map(this.byKey)
     this.byKey.clear()
-    for (const node of nodes) {
+    for (const node of visible) {
       this.byKey.set(node.key, node)
       if (previous.get(node.key) !== node) {
         this.updateTurnKind(previous.get(node.key), node)
@@ -217,18 +261,54 @@ class MutableChatNodeStore implements ChatNodeStore {
     this.valuesDirty = false
   }
 
-  upsert(nodes: readonly ChatConversationViewNode[]): void {
-    let changed = false
+  upsert(nodes: readonly ChatConversationViewNode[]): boolean {
+    let membershipChanged = false
     for (const node of nodes) {
-      if (this.byKey.get(node.key) === node) continue
-      this.updateTurnKind(this.byKey.get(node.key), node)
-      this.exchanges.track(this.byKey.get(node.key), node)
-      this.byKey.set(node.key, node)
-      this.dirtyKeys.add(node.key)
-      this.dirtyProcessKeys.add(node.key)
-      changed = true
+      if (!isRetractionNode(node) || this.byKey.get(node.key) === node) continue
+      const range = retractionRange(node)
+      this.retractions = [...this.retractions, range].sort((left, right) => left.anchorSeq - right.anchorSeq)
+      this.retractedFromTurnValue = this.retractions[0]?.fromTurn
+      membershipChanged = true
+      for (const [key, existing] of [...this.byKey]) {
+        if (isShadowedChatNode(existing, [range])) this.deleteNode(key)
+      }
+      this.setNode(node)
     }
-    if (changed) this.valuesDirty = true
+    for (const node of nodes) {
+      if (isRetractionNode(node)) continue
+      if (isShadowedChatNode(node, this.retractions)) {
+        if (this.byKey.has(node.key)) {
+          this.deleteNode(node.key)
+          membershipChanged = true
+        }
+        continue
+      }
+      this.setNode(node)
+    }
+    return membershipChanged
+  }
+
+  private setNode(node: ChatConversationViewNode): boolean {
+    if (this.byKey.get(node.key) === node) return false
+    const previous = this.byKey.get(node.key)
+    this.updateTurnKind(previous, node)
+    this.exchanges.track(previous, node)
+    this.byKey.set(node.key, node)
+    this.dirtyKeys.add(node.key)
+    this.dirtyProcessKeys.add(node.key)
+    this.valuesDirty = true
+    return true
+  }
+
+  private deleteNode(key: string): void {
+    const node = this.byKey.get(key)
+    if (node === undefined) return
+    this.byKey.delete(key)
+    this.updateTurnKind(node, undefined)
+    this.exchanges.track(node, undefined)
+    this.dirtyKeys.add(key)
+    this.dirtyProcessKeys.add(key)
+    this.valuesDirty = true
   }
 
   touchProcesses(turns: ReadonlySet<number>, locations: ChatLocationNodeIndex): void {
@@ -1113,7 +1193,8 @@ export class ChatSnapshotBuilder implements ConversationViewBuilder<ChatConversa
   }): ChatSnapshot {
     const nodes = this.skillNames.replace(this.referenceLabels.replace(input.nodes))
     this.store.replace(nodes)
-    this.order = orderedVisibleChatNodes(nodes).map(node => node.key)
+    const visible = this.store.values()
+    this.order = orderedVisibleChatNodes(visible).map(node => node.key)
     this.locations.rebuild(this.order, this.store)
     this.store.replaceProcesses(this.order, this.locations)
     this.store.settleBottom(input.timeline.turnOrder, this.locations)
@@ -1127,7 +1208,7 @@ export class ChatSnapshotBuilder implements ConversationViewBuilder<ChatConversa
       readPosition: this.readGroupPosition,
       timeline: input.timeline,
     }
-    const snapshot = this.snapshot(input.timeline, this.legacy.replace(nodes, input.timeline))
+    const snapshot = this.snapshot(input.timeline, this.legacy.replace(visible, input.timeline))
     return snapshot
   }
 
@@ -1159,7 +1240,27 @@ export class ChatSnapshotBuilder implements ConversationViewBuilder<ChatConversa
         if (nextTurn !== undefined) processTurns.add(nextTurn)
       }
     }
-    this.store.upsert(upserts)
+    const membershipChanged = this.store.upsert(upserts)
+    const accepted = upserts.filter(node => this.store.get(node.key) === node)
+    if (membershipChanged) {
+      const visible = this.store.values()
+      const next = orderedVisibleChatNodes(visible).map(node => node.key)
+      this.order = next
+      this.locations.rebuild(this.order, this.store)
+      this.store.replaceProcesses(this.order, this.locations)
+      this.store.settleBottom(input.timeline.turnOrder, this.locations)
+      this.navigation.rebuild(input.timeline, this.locations, this.store)
+      this.timeline = input.timeline
+      this.latestGroupInput = {
+        kind: 'replace',
+        order: this.order as readonly NodeKey[],
+        readNode: this.readGroupNode,
+        readTurn: this.readGroupTurn,
+        readPosition: this.readGroupPosition,
+        timeline: input.timeline,
+      }
+      return this.snapshot(input.timeline, this.legacy.replace(visible, input.timeline))
+    }
     let changedTurnOrders: readonly number[] = EMPTY_TURNS
     if (structural) {
       const next = orderedVisibleChatNodes(this.store.values()).map(node => node.key)
@@ -1186,7 +1287,7 @@ export class ChatSnapshotBuilder implements ConversationViewBuilder<ChatConversa
       changedTurns: input.changedTurns ?? EMPTY_TURNS,
       changedTurnOrders,
     }
-    const snapshot = this.snapshot(input.timeline, this.legacy.apply(upserts, input.timeline))
+    const snapshot = this.snapshot(input.timeline, this.legacy.apply(accepted, input.timeline))
     return snapshot
   }
 
@@ -1209,6 +1310,9 @@ export class ChatSnapshotBuilder implements ConversationViewBuilder<ChatConversa
       navigation: this.navigation,
       timeline,
       legacy,
+      ...this.store.retractedFromTurn() === undefined
+        ? {}
+        : { retractedFromTurn: this.store.retractedFromTurn() },
     }
   }
 }

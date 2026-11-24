@@ -6,6 +6,8 @@ import type { Context } from '@deepseek-ai/cordis'
 import type { ImageAttachmentRef } from '@deepseek-ai/dsh-attachment'
 import type {} from '@deepseek-ai/dsh-api-remotes/client'
 import type { SessionBinding } from '@deepseek-ai/dsh-api-session-controller/client'
+import type { SessionRetractRequest, SessionRetractValue } from '@deepseek-ai/dsh-api-session-controller/types'
+import type { RemoteResult } from '@deepseek-ai/dsh-typert-protocol'
 import { sessionDirectory } from '@deepseek-ai/dsh-api-session-controller/client/directories'
 import type { GroupKey } from '@deepseek-ai/dsh-client-ui-conversation/client'
 import { createSnapshotStore, type ObservableSnapshot } from '@deepseek-ai/dsh-client-store'
@@ -79,7 +81,7 @@ export const CHAT_NODE_INJECT: ChatNodeInjected = {
 
 /** Services required by the Chat target and its presentation registrations. */
 export const inject = [
-  'slots', 'sessions', 'uiWorkspace', 'uiSession', 'uiConversation', 'locale',
+  'slots', 'sessions', 'uiWorkspace', 'uiSession', 'uiConversation', 'conversation', 'locale',
   'configForms', 'connection', 'remote', 'remote.session', 'sidebarRight', 'fileDrag',
 ]
 
@@ -99,6 +101,21 @@ export function apply(ctx: Context): void {
   ctx.effect(() => async () => {
     await Promise.all([...quotaSubscriptions].map(dispose => dispose()))
   }, 'ui-chat: live quota notices')
+  const retractAt = (binding: SessionBinding) => (
+    seq: number,
+    reason: 'edit' | 'retract',
+    text?: string,
+  ): void => {
+    const remote = ctx.remote.session as typeof ctx.remote.session & {
+      retract(request: SessionRetractRequest): Promise<RemoteResult<SessionRetractValue>>
+    }
+    void remote.retract({ sessionId: binding.sessionId, targetSeq: seq, reason })
+      .then((result) => {
+        if (!result.ok || reason !== 'edit' || text === undefined) return
+        ctx.conversation.input.for(binding.ctx).setDraft(text)
+      })
+  }
+
   const chatSource = (binding: SessionBinding): ObservableSnapshot<ChatSnapshot> => {
     let source = chatSources.get(binding)
     if (source === undefined) {
@@ -248,7 +265,7 @@ export function apply(ctx: Context): void {
     inject: (sessionId: SessionId): ChatFlowDataInjected => {
       const binding = ctx.sessions.binding(sessionId)
       if (binding === undefined) throw new Error(`ui-chat: unknown session "${sessionId}"`)
-      return { ...nodeSources(binding), hooks: { presentation, connectionState } }
+      return { ...nodeSources(binding), retractAt: retractAt(binding), hooks: { presentation, connectionState } }
     },
   }, ChatFlow))
 
@@ -273,6 +290,7 @@ export function apply(ctx: Context): void {
         const chat = chatSource(binding)
         return {
           ...nodeSources(binding),
+          retractAt: retractAt(binding),
           fileDrag: ctx.fileDrag.actions,
           hooks: { presentation, interactionIds: ctx.uiConversation.interactions },
           dispatchInteraction: gesture => ctx.uiConversation.interactions.dispatch(sessionId, gesture),

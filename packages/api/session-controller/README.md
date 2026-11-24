@@ -29,6 +29,8 @@ Desktop analytics follows the [product collection policy](../../client/product-a
 
 Fork keeps the inclusive `atSeq` request field and the default completed-turn cut. The command passes the observed history as the fork source: the stored parent prefix through `persistedEventCount`, then the child's marker and cold-read repair events. A live parent's log replaces that prefix in the factory, and a sharing backend drains the parent writer before referencing it; a parent whose stored history is shorter than the cut creates no child. See the [fork upgrade guide](../../../docs/upgrade-guide/v0.2.2-rc.3/session-fork-source/guide.md) for the creation parameters.
 
+Retract removes one user message and every later model-visible node from future context without rewriting the log. It requires an idle Agent with no pending inbox, accepts only the first human message of a Turn, appends an empty developer message replacing the surface range, and records `session/retract` for clients. The transcript keeps the original events for audit, hides the shadowed range, and renders one tombstone. Editing is a client flow: retract first, then put the original text back in the composer; sending appends a new Turn. External side effects of already executed tools are not reversed.
+
 Prompt retries use the request identity in the first committed inbox insertion, including after the message is claimed or removed. Admission checks again after asynchronous attachment preparation, so concurrent retries accept one input. Acceptance acknowledges insertion, not execution or completion.
 
 The controller reads a Session's recorded preset through the optional `agentPresets.presetForSession(session)` service method. A null result means no preset was recorded; an absent service means preset identity is unavailable to the controller.
@@ -137,6 +139,9 @@ No direct effect; model requests remain owned by the Agent and LLM packages.
 - The raw browser upload is one streaming HTTP request without resumable offsets; a retry sends the file again from byte zero.
 - Fork title increments compare candidates with the Client list before the Host normalizes them: concurrent forks of one source, or a title the Host truncates at its byte limit, can still produce duplicate titles.
 - File-reference completion uses the shared Agent lookup and can resume a cold Session; the `skills/list` catalog is the non-activating alternative for skill metadata.
+- Retraction requires an idle Agent and an empty inbox; it hides model-visible history but cannot undo files, messages, or other side effects already produced by tools. The raw events remain in the log for audit.
+- Editing restores the original text only; attachments, inline references, and quoted excerpts are not restored automatically.
+- Retraction is not secure deletion: the raw events remain for audit and may still be found by log or search tooling, and a Session title derived from the retracted prompt is not rewritten.
 - Accepted/running display memory lives only in Client memory and is lost on page reload.
 - That memory is not shared between tabs: one tab can show a converted row while another still shows `New Session` for the same Session.
 

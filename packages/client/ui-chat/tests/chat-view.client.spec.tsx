@@ -55,6 +55,7 @@ import { TurnProcessNodeView } from '../src/client/chat/TurnProcessNodeView.tsx'
 import { SystemPromptNodeView } from '../src/client/chat/SystemPromptRow.tsx'
 import { formatRunDuration as durationParts } from '../src/client/chat/message-chrome.ts'
 import { ChatSnapshotBuilder } from '../src/client/conversation-nodes/chat-snapshot-builder.ts'
+import { retractionDefinition } from '../src/client/conversation-nodes/retraction.ts'
 import { ProcessState } from '../src/client/conversation-nodes/process-groups.ts'
 import type { TurnProcessSpec } from '../src/client/contract/turn-process.ts'
 import { chatSnapshotFixture } from './chat-snapshot-fixture.client.ts'
@@ -454,6 +455,7 @@ function makeHarness(
     read: () => savedScroll,
   }
   const forkAt = vi.fn()
+  const retractAt = vi.fn<(seq: number, reason: 'edit' | 'retract', text?: string) => void>()
   // Rows and the harness must observe the same chat-store instance.
   const chat = createChatStore().create()
   const transcriptView = createSnapshotStore<TranscriptViewMode>('compact')
@@ -586,6 +588,7 @@ function makeHarness(
     loadImage: vi.fn(() => Promise.reject(new Error('not used'))),
     chatScroll,
     forkAt,
+    retractAt,
     // Absent-service default; mention tests override with a real resolver.
     fileMentions: () => undefined,
     t,
@@ -613,7 +616,7 @@ function makeHarness(
     setConnection: (state: ConnectionState) => { connection.set(state) },
     openFile, openUserFile, loadOlder, consumeOlder, prepareOlder, loadThrough, openView,
     setOutline: (value: unknown) => { outlineValue = value },
-    chatScroll, forkAt, toolOwners, fenceCalls, asideRenders,
+    chatScroll, forkAt, retractAt, toolOwners, fenceCalls, asideRenders,
     setPerformanceUsage: (mode: 'compact' | 'detailed') => { performanceUsage.set(mode) },
     setGrouped: (value: ConversationGroupedView<ProcessGroupData> | undefined) => {
       grouped = value
@@ -4960,4 +4963,93 @@ it('does not infer menu targets from links or data attributes inside a plugin fl
   fireEvent.contextMenu(view.getByRole('button', { name: 'Custom target' }))
   expect(custom).toHaveBeenCalledOnce()
   expect(h.props.resolveFilePath).not.toHaveBeenCalled()
+})
+
+
+describe('in-place message retraction', () => {
+  it('classifies the log-only tombstone event', () => {
+    const event = {
+      type: 'session/retract',
+      seq: 5,
+      time: 5_000,
+      data: { targetSeq: 1, shadowedSeqs: [1, 2], fromTurn: 1, toTurn: 1, reason: 'edit' },
+    }
+    expect(retractionDefinition.match(event as never)).toEqual({ id: '1', role: 'start' })
+    const state = retractionDefinition.start?.({} as never, { event } as never, {} as never)
+    expect(state).toMatchObject({ targetSeq: 1, fromTurn: 1, toTurn: 1, reason: 'edit' })
+  })
+
+  it('offers edit and retract actions on a completed user message', () => {
+    const h = makeHarness({ nodes: [user(1, 'hello')] })
+    const view = render(<h.ChatView {...h.props} />)
+    fireEvent.click(view.getByLabelText('编辑消息'))
+    expect(h.retractAt).toHaveBeenCalledWith(1, 'edit', 'hello')
+    fireEvent.click(view.getByLabelText('撤回消息'))
+    expect(h.retractAt).toHaveBeenCalledWith(1, 'retract')
+  })
+
+  it('removes already-loaded turns when the retraction marker arrives later', () => {
+    const source = chatSnapshotFixture({
+      nodes: [user(1, 'question'), assistant(2, 'answer')],
+      turnEnds: new Map([[1, 3]]),
+      turnTimings: new Map([[1, { startTime: 0, endTime: 3_000 }]]),
+    })
+    const builder = new ChatSnapshotBuilder()
+    const initial = builder.replace({ nodes: [...source.nodes.values()], timeline: source.timeline })
+    expect(initial.order).toContain('fixture:user:1')
+    const marker: ChatNode<'retraction'> = {
+      key: 'retraction:1',
+      kind: 'retraction',
+      id: '1',
+      target: 'chat',
+      anchorSeq: 9,
+      location: { kind: 'session' },
+      visibility: 'visible',
+      data: {
+        targetSeq: 1,
+        fromTurn: 1,
+        toTurn: 1,
+        shadowedSeqs: [1, 2],
+        reason: 'retract',
+        time: 9_000,
+      },
+    }
+    const next = builder.apply({ upserts: [marker], timeline: source.timeline })
+    expect(next.order).toEqual(['retraction:1'])
+    expect(next.nodes.get('fixture:user:1')).toBeUndefined()
+    expect(next.retractedFromTurn).toBe(1)
+  })
+
+  it('hides shadowed turns and keeps one tombstone', () => {
+    const source = chatSnapshotFixture({
+      nodes: [user(1, 'question'), assistant(2, 'answer')],
+      turnEnds: new Map([[1, 3]]),
+      turnTimings: new Map([[1, { startTime: 0, endTime: 3_000 }]]),
+    })
+    const marker: ChatNode<'retraction'> = {
+      key: 'retraction:1',
+      kind: 'retraction',
+      id: '1',
+      target: 'chat',
+      anchorSeq: 9,
+      location: { kind: 'session' },
+      visibility: 'visible',
+      data: {
+        targetSeq: 1,
+        fromTurn: 1,
+        toTurn: 1,
+        shadowedSeqs: [1, 2],
+        reason: 'edit',
+        time: 9_000,
+      },
+    }
+    const builder = new ChatSnapshotBuilder()
+    const snapshot = builder.replace({
+      nodes: [...source.nodes.values(), marker],
+      timeline: source.timeline,
+    })
+    expect(snapshot.order).toEqual(['retraction:1'])
+    expect(snapshot.nodes.get('retraction:1')).toMatchObject({ kind: 'retraction' })
+    expect(snapshot.retractedFromTurn).toBe(1)
+  })
 })

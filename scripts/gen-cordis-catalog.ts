@@ -568,6 +568,8 @@ export const LINK_MAP: Readonly<Record<string, string>> = {
   SessionFollowFrame: 'session.md',
   SessionFollowRequest: 'session.md',
   SessionForkRequest: 'session.md',
+  SessionRetractRequest: 'session.md',
+  SessionRetractValue: 'session.md',
   SessionForkValue: 'session.md',
   SessionId: 'core.md',
   SessionLogOffset: 'session.md',

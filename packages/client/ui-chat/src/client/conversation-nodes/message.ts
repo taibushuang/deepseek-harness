@@ -162,7 +162,7 @@ export const messageDefinition: ConversationNodeDefinition<MessageNode> = {
 export const developerMessageDefinition: ConversationNodeDefinition<MessageNode> = {
   ...messageDefinition,
   kind: 'developer-message',
-  match: event => event.type === 'developer/message'
+  match: event => event.type === 'developer/message' && event.data.message.source.kind !== 'retraction'
     ? { id: String(event.data.message.id), role: 'start' }
     : null,
   start: (_context, match) => {

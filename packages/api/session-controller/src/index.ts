@@ -57,6 +57,8 @@ import type {
   SessionPromptValue,
   SessionRenameRequest,
   SessionRenameValue,
+  SessionRetractRequest,
+  SessionRetractValue,
   SessionSearchRequest,
   SessionSearchValue,
   SessionSelectModelRequest,
@@ -430,6 +432,16 @@ export class SessionController extends TypertRemoteService {
       }
     }
     return this.commands.fork(request)
+  }
+
+  /**
+   * Retract one user message and every later model-visible node in place.
+   * @param request - Session, target user message, and edit/retract intent.
+   * @returns the exact hidden range.
+   */
+  @Remote('retract')
+  retract(request: SessionRetractRequest): Promise<SessionRetractValue> {
+    return this.commands.retract(request)
   }
 
   /**

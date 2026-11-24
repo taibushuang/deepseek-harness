@@ -3478,6 +3478,12 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         returns: 'the new Session identity.',
       },
       {
+        signature: '@Remote(\'retract\') retract(request: SessionRetractRequest): Promise<SessionRetractValue>',
+        description: 'Retract one user message and every later model-visible node in place.',
+        parameters: [{ name: 'request', description: 'Session, target user message, and edit/retract intent.' }],
+        returns: 'the exact hidden range.',
+      },
+      {
         signature: '@Remote(\'prompt\') async prompt(request: SessionPromptRequest, signal: AbortSignal): Promise<SessionPromptValue>',
         description: 'Admit one prompt after explicitly resuming its Session.',
         parameters: [{ name: 'request', description: 'Session identity, prompt content, source metadata, and delivery mode.' }, { name: 'signal', description: 'caller cancellation before prompt admission begins.' }],
@@ -10285,6 +10291,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'SessionResultRange',
     declaration: 'export interface SessionResultRange {\n    from?: number;\n    to?: number;\n}',
+  },
+  {
+    name: 'SessionRetractRequest',
+    declaration: 'export interface SessionRetractRequest {\n    readonly sessionId: SessionId;\n    readonly targetSeq: number;\n    readonly reason: \'edit\' | \'retract\';\n}',
+  },
+  {
+    name: 'SessionRetractValue',
+    declaration: 'export interface SessionRetractValue {\n    readonly accepted: true;\n    readonly targetSeq: number;\n    readonly fromTurn: number;\n    readonly toTurn: number;\n    readonly shadowedSeqs: readonly number[];\n}',
   },
   {
     name: 'SessionSearchCursor',

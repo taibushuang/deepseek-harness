@@ -16,6 +16,36 @@ import type { WorkspaceId } from '@deepseek-ai/dsh-workspace/types'
 
 export type { SessionListMetadata } from '@deepseek-ai/dsh-session-query/types'
 
+declare module '@deepseek-ai/dsh-session/types' {
+  interface SessionEventMap {
+    /**
+     * Log-only tombstone for an in-place message retraction. The shadowed
+     * surface range is removed from future model input by a companion empty
+     * developer message; this record lets every client render the tombstone and
+     * keeps the original events available for audit.
+     */
+    'session/retract': {
+      /** Event sequence of the retracted user message. */
+      targetSeq: number
+      /** Surface event sequences shadowed by this retraction, in surface order. */
+      shadowedSeqs: number[]
+      /** First Turn hidden by the retraction. */
+      fromTurn: number
+      /** Last Turn hidden by the retraction. */
+      toTurn: number
+      /** User intent that produced the tombstone. */
+      reason: 'edit' | 'retract'
+    }
+  }
+}
+
+declare module '@deepseek-ai/dsh-llm' {
+  interface MessageSourceMap {
+    /** Empty developer message whose only purpose is to shadow a surface range. */
+    retraction: { kind: 'retraction' }
+  }
+}
+
 declare module '@deepseek-ai/dsh-session-projection/types' {
   interface SessionProjectionMap {
     /** Eligible latest failed turn/end for an empty prompt, or null. */
@@ -198,6 +228,7 @@ declare module '@deepseek-ai/dsh-typert-protocol' {
     'session/steer-unavailable': { readonly itemId: MessageId }
     'session/title-invalid': { readonly sessionId: SessionId }
     'session/fork-unavailable': { readonly sessionId: SessionId }
+    'session/retract-unavailable': { readonly reason: string }
     'session/migration-required': { readonly sessionId: SessionId }
     'subagent/not-found': {
       readonly parentSessionId: SessionId
@@ -310,6 +341,24 @@ export interface SessionForkRequest {
 /** Identity of a newly forked Session. */
 export interface SessionForkValue {
   readonly sessionId: SessionId
+}
+
+/** Request to retract one user message and every later model-visible node in place. */
+export interface SessionRetractRequest {
+  readonly sessionId: SessionId
+  /** Event sequence of the user message to retract. */
+  readonly targetSeq: number
+  /** Whether the retraction starts an edit flow or a plain withdrawal. */
+  readonly reason: 'edit' | 'retract'
+}
+
+/** Accepted retraction with the exact hidden range. */
+export interface SessionRetractValue {
+  readonly accepted: true
+  readonly targetSeq: number
+  readonly fromTurn: number
+  readonly toTurn: number
+  readonly shadowedSeqs: readonly number[]
 }
 
 /** Session prompt request. */

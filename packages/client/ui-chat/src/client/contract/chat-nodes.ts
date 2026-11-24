@@ -21,7 +21,10 @@ export interface ChatConversationViewNode extends ConversationViewNode {
 }
 
 /** Merge-extensible payload registry keyed by final Chat renderer kind. */
-export interface ChatNodeDataMap {}
+export interface ChatNodeDataMap {
+  /** In-place message retraction tombstone. */
+  retraction: RetractionChatData
+}
 
 /** Renderer kinds contributed by the currently installed Chat business modules. */
 export type ChatNodeKind = Extract<keyof ChatNodeDataMap, string>
@@ -101,6 +104,16 @@ export interface TurnTailChatData {
   readonly branchUnavailable: boolean
   /** Exact per-Turn accounting; absent when the loaded evidence is incomplete. */
   readonly tokenUsage?: TurnTokenUsage
+}
+
+/** One in-place retraction tombstone and the Turn range it hid. */
+export interface RetractionChatData {
+  readonly targetSeq: number
+  readonly fromTurn: number
+  readonly toTurn: number
+  readonly shadowedSeqs: readonly number[]
+  readonly reason: 'edit' | 'retract'
+  readonly time: number
 }
 
 /** Turn-level process disclosure projected before the finalized answer. */

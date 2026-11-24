@@ -242,6 +242,10 @@ export interface ChatNodeOwnerProps {
   openFile: (path: string, options?: OpenFileOptions) => void
   inspectCall: ((callId: ToolCallId) => void) | undefined
   forkAt: (seq: number) => void
+  /** Retract one user message, optionally reopening its text in the composer. */
+  retractAt?: ((seq: number, reason: 'edit' | 'retract', text?: string) => void) | undefined
+  /** Whether a completed turn currently permits retraction or editing. */
+  messageActionsAvailable?: boolean | undefined
   /** Session-authorized image loader supplied by the Chat view. */
   loadImage: MessageImageLoader
   /** Turn-process state when this Node belongs to a projected Turn. */
@@ -359,10 +363,12 @@ export interface ChatViewInjected {
     read: () => ChatScrollPosition | null
   }
   forkAt: (seq: number) => void
+  /** Retract one user message, optionally reopening its text in the composer. */
+  retractAt: (seq: number, reason: 'edit' | 'retract', text?: string) => void
 }
 
 /** Session-owned node sources shared with the view, plus the flow's connection state. */
-export type ChatFlowDataInjected = Pick<ChatViewInjected, 'keyedHooks'> & {
+export type ChatFlowDataInjected = Pick<ChatViewInjected, 'keyedHooks' | 'retractAt'> & {
   hooks: Pick<ChatViewInjected['hooks'], 'presentation'> & {
     /** Client connection lifecycle; the running clock pauses while it is not connected. */
     connectionState: ConnectionStateSource

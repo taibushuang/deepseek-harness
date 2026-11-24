@@ -115,6 +115,8 @@ export interface ChatSnapshot {
   readonly navigation: ChatTurnNavigationIndex
   readonly timeline: ConversationTimelineSnapshot
   readonly legacy: LegacyConversationSlice
+  /** Smallest Turn hidden by an in-place retraction, when one exists. */
+  readonly retractedFromTurn?: number | undefined
 }
 
 declare module '@deepseek-ai/dsh-client-ui-conversation/client' {

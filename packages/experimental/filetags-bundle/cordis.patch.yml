@@ -5,9 +5,15 @@
         path: !!js dshHomePath('data', 'filetags.db')
     - id: client-ui-filetags
       name: '@deepseek-ai/dsh-client-ui-filetags'
+    - id: action-cards
+      name: '@deepseek-ai/dsh-action-cards'
+    - id: client-ui-action-cards
+      name: '@deepseek-ai/dsh-client-ui-action-cards'
     - id: tool-fs-transfer
       name: '@deepseek-ai/dsh-tool-fs-transfer'
     - id: office-text
       name: '@deepseek-ai/dsh-office-text'
     - id: file-organizer
       name: '@deepseek-ai/dsh-file-organizer'
+    - id: client-ui-file-organizer
+      name: '@deepseek-ai/dsh-client-ui-file-organizer'

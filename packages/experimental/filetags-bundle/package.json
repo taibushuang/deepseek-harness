@@ -43,6 +43,9 @@
     "@deepseek-ai/cordis": "workspace:~"
   },
   "dependencies": {
+    "@deepseek-ai/dsh-action-cards": "workspace:*",
+    "@deepseek-ai/dsh-client-ui-action-cards": "workspace:*",
+    "@deepseek-ai/dsh-client-ui-file-organizer": "workspace:*",
     "@deepseek-ai/dsh-client-ui-filetags": "workspace:*",
     "@deepseek-ai/dsh-file-organizer": "workspace:*",
     "@deepseek-ai/dsh-filetags": "workspace:*",

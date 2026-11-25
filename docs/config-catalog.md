@@ -1674,7 +1674,7 @@ export interface Config {
 ## `@deepseek-ai/dsh-file-organizer`
 
 - `inject`: `tools` · `fs` · `workingDirectory` · `storageDomain`
-- `source`: [`packages/experimental/file-organizer/src/index.ts:27`](../packages/experimental/file-organizer/src/index.ts)
+- `source`: [`packages/experimental/file-organizer/src/index.ts:28`](../packages/experimental/file-organizer/src/index.ts)
 
 ```ts config-catalog
 /** Plugin configuration. */
@@ -1723,6 +1723,10 @@ export interface Config {
 export interface Config {
   /** Absolute path of the central tag database file. */
   path: string
+  /** Maximum files and directories one legacy import scans. */
+  maxImportEntries?: number
+  /** Maximum imported entries echoed by one result. */
+  maxImportDisplay?: number
 }
 ```
 <!-- END GENERATED config-catalog:@deepseek-ai/dsh-filetags -->
@@ -5490,6 +5494,7 @@ These load from a `cordis.yml` entry with no `config:` block; they declare no co
 | `@deepseek-ai/dsh-client-ui-entry-customization` | — | [`packages/client/ui-entry-customization/src/index.ts`](../packages/client/ui-entry-customization/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-file-actions` | — | [`packages/client/ui-file-actions/src/index.ts`](../packages/client/ui-file-actions/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-file-drag` | — | [`packages/client/ui-file-drag/src/index.ts`](../packages/client/ui-file-drag/src/index.ts) |
+| `@deepseek-ai/dsh-client-ui-file-organizer` | — | [`packages/experimental/client-ui-file-organizer/src/index.ts`](../packages/experimental/client-ui-file-organizer/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-filetags` | — | [`packages/experimental/client-ui-filetags/src/index.ts`](../packages/experimental/client-ui-filetags/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-goal` | — | [`packages/client/ui-goal/src/index.ts`](../packages/client/ui-goal/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-input-trigger` | — | [`packages/client/ui-input-trigger/src/index.ts`](../packages/client/ui-input-trigger/src/index.ts) |
@@ -5524,6 +5529,7 @@ These load from a `cordis.yml` entry with no `config:` block; they declare no co
 | `@deepseek-ai/dsh-client-ui-sidebar-terminal` | — | [`packages/client/ui-sidebar-terminal/src/index.ts`](../packages/client/ui-sidebar-terminal/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-skill` | — | [`packages/client/ui-skill/src/index.ts`](../packages/client/ui-skill/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-subagent` | — | [`packages/client/ui-subagent/src/index.ts`](../packages/client/ui-subagent/src/index.ts) |
+| `@deepseek-ai/dsh-client-ui-tasks` | — | [`packages/experimental/client-ui-tasks/src/index.ts`](../packages/experimental/client-ui-tasks/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-tool` | — | [`packages/client/ui-tool/src/index.ts`](../packages/client/ui-tool/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-user-questions` | — | [`packages/client/ui-user-questions/src/index.ts`](../packages/client/ui-user-questions/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-workflow-run` | — | [`packages/client/ui-workflow-run/src/index.ts`](../packages/client/ui-workflow-run/src/index.ts) |
@@ -5682,6 +5688,8 @@ Imported as libraries by other packages; a `cordis.yml` cannot load them.
 | `@deepseek-ai/dsh-session-telemetry` | — | [`packages/session/session-telemetry/src/index.ts`](../packages/session/session-telemetry/src/index.ts) |
 | `@deepseek-ai/dsh-session-title-llm` | — | [`packages/session/session-title-llm/src/index.ts`](../packages/session/session-title-llm/src/index.ts) |
 | `@deepseek-ai/dsh-ssh-helper-runtime` | — | [`packages/ssh/ssh-helper-runtime/src/index.ts`](../packages/ssh/ssh-helper-runtime/src/index.ts) |
+| `@deepseek-ai/dsh-tasks` | — | [`packages/experimental/tasks/src/index.ts`](../packages/experimental/tasks/src/index.ts) |
+| `@deepseek-ai/dsh-tasks-bundle` | — | [`packages/experimental/tasks-bundle/src/index.ts`](../packages/experimental/tasks-bundle/src/index.ts) |
 | `@deepseek-ai/dsh-timeout` | — | [`packages/util/timeout/src/index.ts`](../packages/util/timeout/src/index.ts) |
 | `@deepseek-ai/dsh-tool-testkit` | — | [`packages/test-support/tool-testkit/src/index.ts`](../packages/test-support/tool-testkit/src/index.ts) |
 | `@deepseek-ai/dsh-typert-generator` | — | [`packages/typert/generator/src/index.ts`](../packages/typert/generator/src/index.ts) |

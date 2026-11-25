@@ -99,6 +99,10 @@ kind: "package-group"
 | [`tool-fs-transfer`](tool-fs-transfer/README.zh.md) | 逐字节复制与移动文件、且拒绝覆盖的工具 | `ctx.tools` |
 | [`office-text`](office-text/README.zh.md) | 读取 Word、PowerPoint、Excel 与 PDF 文档的纯文本 | `ctx.officeText` |
 | [`file-organizer`](file-organizer/README.zh.md) | 按规则预览、执行、撤销和查看历史的文件夹整理（可选打标签） | `ctx.fileOrganizer` |
+| [`client-ui-file-organizer`](client-ui-file-organizer/README.zh.md) | 文件整理卡片的浏览器端：执行或撤销整理批次 | — |
+| [`tasks`](tasks/README.zh.md) | 持久化个人待办：六个模型工具与 `tasks` Remote 命名空间 | `ctx.tasks` |
+| [`client-ui-tasks`](client-ui-tasks/README.zh.md) | 右侧栏任务页，读写 `tasks` Remote 命名空间 | — |
+| [`tasks-bundle`](tasks-bundle/README.zh.md) | 组合任务服务与右侧栏任务页的 bundle | — |
 | [`webworker-packer`](webworker-packer/README.zh.md) | 构建浏览器 worker 预览所消费的 gzip 压缩虚拟文件系统（VFS）镜像 | 库与 CLI（命令行界面），不使用 ctx key |
 | [`webworker-runtime`](webworker-runtime/README.zh.md) | 在专用浏览器 worker 中运行 harness 插件树 | 库与 worker 入口，不使用 ctx key |
 | [`worktree`](worktree/README.zh.md) | 创建具名 Git 工作树并改变调用 Session 的当前目录 | `ctx.worktrees` |

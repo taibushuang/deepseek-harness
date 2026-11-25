@@ -25,6 +25,12 @@
     },
     {
       "path": "../../../vendor/schemastery"
+    },
+    {
+      "path": "../../fs/fs"
+    },
+    {
+      "path": "../../session/working-directory"
     }
   ]
 }

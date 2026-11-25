@@ -456,6 +456,8 @@
     { "path": "./packages/experimental/tool-fs-transfer" },
     { "path": "./packages/experimental/office-text" },
     { "path": "./packages/experimental/file-organizer" },
+    { "path": "./packages/experimental/tasks" },
+    { "path": "./packages/experimental/tasks-bundle" },
     { "path": "./packages/experimental/forge" },
     { "path": "./packages/experimental/forge-github" },
     { "path": "./packages/experimental/forge-gitlab" },

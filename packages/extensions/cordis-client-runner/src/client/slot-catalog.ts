@@ -5124,6 +5124,7 @@ export const CLIENT_SLOT_API: readonly ClientSlotEntry[] = [
       'client-ui-subagent SidebarChatTab',
       'client-ui-filetags TagPanel',
       'experimental-client-ui-forge ChangesTab',
+      'client-ui-tasks TaskPanel',
       'experimental-session-inspector SessionInspectorView',
       'timeline Panel',
     ],

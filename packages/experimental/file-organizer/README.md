@@ -55,6 +55,8 @@ organize_apply(batch_id: "...", confirm: true)
 
 `destination_root` defaults to the organized directory. `others_target` and `others_tags` handle files matching no rule. A rule tag must be one word without whitespace. Directories, hidden names, and symlinks are skipped, never moved.
 
+When `action-cards` and its browser frame are mounted, the assistant can offer an `organize_files` card after the preview; the card's Apply/Undo controls call the same service, and its body lives in [client-ui-file-organizer](../client-ui-file-organizer/README.md). The model tool remains the only path for headless runs.
+
 `organize_undo` reverses every move an applied batch completed. `organize_history` lists recent batches with status and move count. Both read the same durable journal, so they keep working after a Host restart.
 
 Folder tags are a separate concern: `filetags_tag` accepts directories, so a categorized destination folder can carry its own tags and be found later with `filetags_search` without adding files to it. The organizer never writes into a managed directory except the moves the user approved.
@@ -115,6 +117,7 @@ Tool schemas and descriptions are static. Results vary with the plan, so the cac
 - Undo of a partially applied batch skips moves that never completed.
 - A move is not atomic across filesystems; `transferFile` uses the provider's copy-then-remove fallback.
 - The journal stores absolute paths. Moving or renaming the managed tree outside the organizer makes old batches un-undoable.
+- The confirmation card exists only when the model emits a valid `action-card` block; scheduled runs should call organize_apply directly.
 
 ### Dev Note
 

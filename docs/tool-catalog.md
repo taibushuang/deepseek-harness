@@ -1328,7 +1328,7 @@ Source: [`packages/experimental/file-organizer/src/index.ts`](../packages/experi
 
 ### `organize_preview`
 
-Plan how direct files in one directory would move into category subdirectories. Rules are ordered: the first glob matching a file name wins, and others_target receives the rest. Nothing moves until organize_apply.
+Plan how direct files in one directory would move into category subdirectories. Rules are ordered: the first glob matching a file name wins, and others_target receives the rest. Nothing moves until organize_apply. After presenting the plan to a human, end your answer with one ```action-card block offering action "organize_files" and details {batchId, directory, totalMoves, totalSkipped} copied from the preview. For an unattended scheduled run, call organize_apply directly instead of offering a card.
 
 ```json
 {

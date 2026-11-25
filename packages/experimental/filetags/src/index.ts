@@ -7,10 +7,13 @@
  */
 
 import type { Context } from '@deepseek-ai/cordis'
-import { isAbsolute, resolve } from 'node:path'
+import { isAbsolute, join, resolve } from 'node:path'
 import { defineTool, ToolArgsError } from '@deepseek-ai/dsh-tools'
 import { Remote, RemoteError, TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol'
+import type { FileSystem, FsTarget } from '@deepseek-ai/dsh-fs'
+import type {} from '@deepseek-ai/dsh-working-directory'
 import { schema, type Config } from './config.ts'
+import { bracketTags, parseTsi } from './import.ts'
 import { openFiletagsDatabase } from './schema.ts'
 import { TagExpressionError } from './query.ts'
 import { FiletagStore, PathArgumentError, TagNameError } from './store.ts'
@@ -201,6 +204,101 @@ export default class FileTags extends TypertRemoteService {
         return entry === undefined ? { tags: [] } : { entry: mutableEntry(entry) }
       },
     })), 'filetags: list tool')
+    this.registerImportTool(ctx, store)
+  }
+
+  /** Register the read-only legacy importer over an optional filesystem. */
+  private registerImportTool(ctx: Context, store: () => Promise<FiletagStore>): void {
+    ctx.inject(['fs', 'workingDirectory'], (importCtx) => {
+      const fs: FileSystem = importCtx.fs
+      ctx.effect(() => ctx.tools.register(defineTool({
+        name: 'filetags_import',
+        description: 'Preview or import tags from a legacy TagSpaces library. Reads .ts/tsi.json and [tag] filename groups; confirm: true writes only the central tag database and never modifies the old directory.',
+        parameters: {
+          directory: { type: 'string', required: true, description: 'Root of the old TagSpaces library (relative paths use the Session directory).' },
+          confirm: { type: 'boolean', required: true, description: 'False previews; true imports into the central database.' },
+        },
+        output: {
+          schema: {
+            type: 'object',
+            additionalProperties: false,
+            properties: {
+              directory: { type: 'string', required: true },
+              scanned: { type: 'integer', required: true },
+              files: { type: 'integer', required: true },
+              tags: { type: 'array', required: true, items: { type: 'string' } },
+              entries: { type: 'array', required: true, items: { type: 'object', additionalProperties: false, properties: { path: { type: 'string', required: true }, tags: { type: 'array', required: true, items: { type: 'string' } } } } },
+              imported: { type: 'integer', required: true },
+              failed: { type: 'integer', required: true },
+            },
+          },
+          render: (_args, value) => [{ type: 'text', text: JSON.stringify(value) }],
+        },
+        execute: async (args, exec) => {
+          if (args.directory.trim() === '') throw new ToolArgsError(['directory must be a non-empty string'])
+          const options = exec.agent === undefined
+            ? { signal: exec.signal }
+            : { cwd: await importCtx.workingDirectory.ensure(exec.agent, exec.signal), signal: exec.signal }
+          const root = await fs.resolve(args.directory, options)
+          const info = await fs.stat(root, exec.signal)
+          if (info?.type !== 'directory') throw new ToolArgsError([`${args.directory} is not a directory`])
+          let remaining = this.config.maxImportEntries ?? 10000
+          const found = new Map<string, Set<string>>()
+          const visit = async (directory: FsTarget): Promise<void> => {
+            if (remaining <= 0) return
+            const children = await fs.listDir(directory, exec.signal)
+            for (const child of children) {
+              if (remaining <= 0) return
+              remaining -= 1
+              if (child.name === '.ts' && child.type === 'directory') {
+                const metadata = await fs.resolve(join(child.target.displayPath, 'tsi.json'), { signal: exec.signal })
+                let text: string
+                try { text = await fs.readText(metadata, exec.signal) } catch { continue }
+                for (const entry of parseTsi(text)) {
+                  const target = await fs.resolve(join(directory.displayPath, entry.relativePath), { signal: exec.signal })
+                  const path = fs.processPath(target)
+                  const tags = found.get(path) ?? new Set<string>()
+                  for (const tag of entry.tags) tags.add(tag)
+                  found.set(path, tags)
+                }
+                continue
+              }
+              if (child.name.startsWith('.')) continue
+              if (child.type === 'directory') {
+                await visit(child.target)
+                continue
+              }
+              if (child.type !== 'file') continue
+              const tags = found.get(child.target.displayPath) ?? new Set<string>()
+              for (const tag of bracketTags(child.name)) tags.add(tag)
+              if (tags.size > 0) found.set(child.target.displayPath, tags)
+            }
+          }
+          await visit(root)
+          const entries = [...found]
+            .map(([path, tags]) => ({ path, tags: [...tags].sort() }))
+            .sort((left, right) => left.path.localeCompare(right.path))
+          const allTags = [...new Set(entries.flatMap(entry => entry.tags))].sort()
+          let imported = 0
+          let failed = 0
+          if (args.confirm) {
+            const opened = await store()
+            for (const entry of entries) {
+              try { await opened.tag([entry.path], entry.tags); imported += 1 } catch { failed += 1 }
+            }
+          }
+          return {
+            directory: fs.processPath(root),
+            scanned: (this.config.maxImportEntries ?? 10000) - remaining,
+            files: entries.length,
+            tags: allTags,
+            entries: entries.slice(0, this.config.maxImportDisplay ?? 50),
+            imported,
+            failed,
+          }
+        },
+      })), 'filetags: import tool')
+    })
   }
 
   /**

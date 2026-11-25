@@ -1,0 +1,43 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write packages/experimental/client-ui-file-organizer/README.md
+/:
+  en: 8d4648bd031fe641
+  zh: 3e6c80465d614956
+/deepseek-ai-dsh-client-ui-file-organizer:
+  en: d8c80110d2e6fba4
+  zh: 141a40acd2cedd9c
+/deepseek-ai-dsh-client-ui-file-organizer/summary:
+  en: 42eba4c190f65fd7
+  zh: f36a52d9981a13ee
+/deepseek-ai-dsh-client-ui-file-organizer/table-of-contents:
+  en: 76368b6b1da79c80
+  zh: 1e8f931a56b7d34d
+/deepseek-ai-dsh-client-ui-file-organizer/use-this-package:
+  en: 956b33173cb46ec2
+  zh: a7b1a5a774bf4948
+/deepseek-ai-dsh-client-ui-file-organizer/understand-the-implementation:
+  en: ce7d1c9eb9931afc
+  zh: ec2f54194d87b287
+/deepseek-ai-dsh-client-ui-file-organizer/model-experience:
+  en: 215e7ba838619b7b
+  zh: a311da3843709f90
+/deepseek-ai-dsh-client-ui-file-organizer/model-experience/organization-card:
+  en: b99bd7b30d4f773a
+  zh: 0caf4f277eda0bfd
+/deepseek-ai-dsh-client-ui-file-organizer/model-experience/organization-card/what-the-model-sees:
+  en: f99c5b4fbaedf4d2
+  zh: ebfac734912db457
+/deepseek-ai-dsh-client-ui-file-organizer/model-experience/organization-card/token-effect:
+  en: 040b5831cd19bff1
+  zh: 323012885637d543
+/deepseek-ai-dsh-client-ui-file-organizer/model-experience/organization-card/kv-cache-effect:
+  en: edfa6a1ed6867744
+  zh: 6598cf22ed37b3ad
+/deepseek-ai-dsh-client-ui-file-organizer/known-limitations-and-deferred-work:
+  en: bb36ae1468cb0581
+  zh: 074b310efdc6530e
+/deepseek-ai-dsh-client-ui-file-organizer/known-limitations-and-deferred-work/dev-note:
+  en: 44fe6d9dcde8b9ba
+  zh: 5732bf6a263ce08a

@@ -1,0 +1,5 @@
+- insert:
+    - id: tasks
+      name: '@deepseek-ai/dsh-tasks'
+    - id: client-ui-tasks
+      name: '@deepseek-ai/dsh-client-ui-tasks'

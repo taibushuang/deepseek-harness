@@ -1,0 +1,43 @@
+# Bilingual-pair consistency record for office-assistant.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write docs/user/guide/office-assistant.md
+/file-tags-organization-and-tasks:
+  en: a8f572bc42445966
+  zh: 848ee599ff045e85
+/file-tags-organization-and-tasks/summary:
+  en: 851c9dfe71dbf1c2
+  zh: 5f3804d76fd52b57
+/file-tags-organization-and-tasks/table-of-contents:
+  en: 2bac720b06a85e16
+  zh: 963631d74d9dd234
+/file-tags-organization-and-tasks/enable-the-pieces:
+  en: ed65209a661b62e2
+  zh: fa659c8d53ce6c4b
+/file-tags-organization-and-tasks/tag-files-and-folders:
+  en: 349bf7b3f706c1c4
+  zh: 88d26160a593cd72
+/file-tags-organization-and-tasks/organize-an-inbox:
+  en: d095bc7015b8dbaf
+  zh: 6f8c265d6bf099f5
+/file-tags-organization-and-tasks/confirm-from-chat:
+  en: 27e06eb537c027f1
+  zh: 7c95874d85530b13
+/file-tags-organization-and-tasks/run-an-inbox-pass-on-a-schedule:
+  en: be7fd1e0fd11c373
+  zh: 9cc384cdc53ba100
+/file-tags-organization-and-tasks/track-personal-tasks:
+  en: f133182e121c1c8a
+  zh: b92914ad8220ea5b
+/file-tags-organization-and-tasks/import-old-tagspaces-data:
+  en: 09fe937259d9256f
+  zh: afa965830555b917
+/file-tags-organization-and-tasks/edit-or-retract-a-sent-message:
+  en: 23425b8e7bcfd3a1
+  zh: 39a6a17b18471c4a
+/file-tags-organization-and-tasks/current-boundaries:
+  en: 4fb686b243869906
+  zh: 1470178e59cbd4a0
+/file-tags-organization-and-tasks/further-exploration:
+  en: f55917f4c783322b
+  zh: 9ef62c74bb280a33

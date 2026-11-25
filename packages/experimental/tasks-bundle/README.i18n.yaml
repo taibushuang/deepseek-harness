@@ -1,0 +1,43 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write packages/experimental/tasks-bundle/README.md
+/:
+  en: e752c389460720b4
+  zh: 1e3d60bbe8dc72f3
+/deepseek-ai-dsh-tasks-bundle:
+  en: b433fa2211ab594e
+  zh: cf15759400169e54
+/deepseek-ai-dsh-tasks-bundle/summary:
+  en: 3e37240705ea9007
+  zh: 74d0cf96063d5074
+/deepseek-ai-dsh-tasks-bundle/table-of-contents:
+  en: 76368b6b1da79c80
+  zh: 1e8f931a56b7d34d
+/deepseek-ai-dsh-tasks-bundle/use-this-package:
+  en: df1760101b4aa000
+  zh: 7f2a602fbf4260cb
+/deepseek-ai-dsh-tasks-bundle/understand-the-implementation:
+  en: f053c50179fb601d
+  zh: 364b54f3669f72e1
+/deepseek-ai-dsh-tasks-bundle/model-experience:
+  en: 215e7ba838619b7b
+  zh: a311da3843709f90
+/deepseek-ai-dsh-tasks-bundle/model-experience/task-tools:
+  en: b6527625be98dbc5
+  zh: 5aa7e4e0e7deb772
+/deepseek-ai-dsh-tasks-bundle/model-experience/task-tools/what-the-model-sees:
+  en: 50956d6db30a1784
+  zh: e8f17a00bb617836
+/deepseek-ai-dsh-tasks-bundle/model-experience/task-tools/token-effect:
+  en: 203e15a46e2b8875
+  zh: 7ebc84ae14f92fe5
+/deepseek-ai-dsh-tasks-bundle/model-experience/task-tools/kv-cache-effect:
+  en: c625d009f0dffd98
+  zh: 4ef8b35383706530
+/deepseek-ai-dsh-tasks-bundle/known-limitations-and-deferred-work:
+  en: 47e4d2c1250eccf5
+  zh: dc84c4121c71c4cf
+/deepseek-ai-dsh-tasks-bundle/known-limitations-and-deferred-work/dev-note:
+  en: 3e2c770dde15cd83
+  zh: 2efb5aa63b21d88e

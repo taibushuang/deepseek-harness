@@ -55,6 +55,8 @@ organize_apply(batch_id: "...", confirm: true)
 
 `destination_root` 默认为被整理目录。`others_target` 与 `others_tags` 处理不匹配任何规则的文件。规则标签必须是不含空白的单个词。目录、隐藏名称与符号链接会被跳过，绝不移动。
 
+挂载 `action-cards` 及其浏览器框架后，助手可以在预览后提供一张 `organize_files` 卡片；卡片上的执行/撤销按钮调用同一服务，body 位于 [client-ui-file-organizer](../client-ui-file-organizer/README.zh.md)。无界面运行仍只走模型工具。
+
 `organize_undo` 逆向恢复一个已执行批次完成的全部移动。`organize_history` 列出最近批次的状态与移动数。二者读取同一份持久 journal，Host 重启后仍可用。
 
 文件夹标签是另一件事：`filetags_tag` 接受目录，因此分类后的目标文件夹可以携带自己的标签，之后用 `filetags_search` 找到它，而不必向其中新增文件。除用户批准的移动外，整理器不会向被管理目录写入任何内容。
@@ -115,6 +117,7 @@ do not retry destructive steps.
 - 撤销部分执行的批次时，未完成的移动会被跳过。
 - 跨文件系统的移动不是原子的；`transferFile` 使用提供方的先复制后删除回退。
 - journal 保存绝对路径。在整理器之外移动或重命名被管理树会使旧批次无法撤销。
+- 只有模型输出合法的 `action-card` 代码块时才会出现确认卡片；定时运行应直接调用 organize_apply。
 
 ### 开发备注
 

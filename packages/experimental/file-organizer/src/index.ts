@@ -12,6 +12,7 @@ import type { ToolExecution } from '@deepseek-ai/dsh-tools'
 import type {} from '@deepseek-ai/dsh-working-directory'
 import type {} from '@deepseek-ai/dsh-filetags'
 import { FileOrganizer, type OrganizerConfig } from './service.ts'
+import { registerOrganizerCard } from './card.ts'
 
 export type { BatchResult, BatchSummary, FileOrganizer, MoveOutcome, OrganizerConfig, PreviewResult, TagWriter } from './service.ts'
 export type { OrganizePlan, OrganizeRule, PlannedMove, PlannedSkip } from './rules.ts'
@@ -137,9 +138,13 @@ export function apply(ctx: Context, config: Config): void {
   const organizer = new FileOrganizer(ctx, limits, () => ctx.get('fileTags'))
   ctx.provide('fileOrganizer', organizer)
 
+  ctx.inject(['actionCards'], (cardsCtx) => { registerOrganizerCard(cardsCtx.actionCards, organizer) })
+
   ctx.tools.register(defineTool({
     name: 'organize_preview',
-    description: 'Plan how direct files in one directory would move into category subdirectories. Rules are ordered: the first glob matching a file name wins, and others_target receives the rest. Nothing moves until organize_apply.',
+    description: 'Plan how direct files in one directory would move into category subdirectories. Rules are ordered: the first glob matching a file name wins, and others_target receives the rest. Nothing moves until organize_apply. '
+      + 'After presenting the plan to a human, end your answer with one ```action-card block offering action "organize_files" and details {batchId, directory, totalMoves, totalSkipped} copied from the preview. '
+      + 'For an unattended scheduled run, call organize_apply directly instead of offering a card.',
     parameters: {
       directory: { type: 'string', required: true, description: 'Directory whose direct files to organize (relative paths use the Session directory).' },
       rules: {

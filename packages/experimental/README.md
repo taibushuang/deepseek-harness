@@ -99,6 +99,10 @@ Promotion requires a named product role, documented public behavior and limitati
 | [`tool-fs-transfer`](tool-fs-transfer/README.md) | Byte-exact file copy and move tools with no-overwrite guards | `ctx.tools` |
 | [`office-text`](office-text/README.md) | Plain-text reading of Word, PowerPoint, Excel, and PDF documents | `ctx.officeText` |
 | [`file-organizer`](file-organizer/README.md) | Rule-driven folder preview, apply, undo, and history with optional tagging | `ctx.fileOrganizer` |
+| [`client-ui-file-organizer`](client-ui-file-organizer/README.md) | Browser body for file-organizer cards: apply or undo an organization batch | — |
+| [`tasks`](tasks/README.md) | Durable personal tasks with six model tools and a `tasks` Remote namespace | `ctx.tasks` |
+| [`client-ui-tasks`](client-ui-tasks/README.md) | Right Sidebar Tasks page over the `tasks` Remote namespace | — |
+| [`tasks-bundle`](tasks-bundle/README.md) | Bundle composing the task service and the right Sidebar page | — |
 | [`webworker-packer`](webworker-packer/README.md) | Builds the gzip-compressed VFS image consumed by the browser worker preview | library and CLI — no ctx key |
 | [`webworker-runtime`](webworker-runtime/README.md) | Runs the harness plugin tree inside a dedicated browser worker | library and worker entry — no ctx key |
 | [`worktree`](worktree/README.md) | Creates a named Git worktree and changes the calling Session directory | `ctx.worktrees` |

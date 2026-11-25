@@ -34,10 +34,14 @@ export const EXPERIMENTAL_PACKAGE_NAME_EXCEPTIONS: Readonly<Record<string, strin
   'packages/experimental/deepseek-chat-import': '@deepseek-ai/dsh-deepseek-chat-import',
   'packages/experimental/filetags': '@deepseek-ai/dsh-filetags',
   'packages/experimental/client-ui-filetags': '@deepseek-ai/dsh-client-ui-filetags',
+  'packages/experimental/client-ui-file-organizer': '@deepseek-ai/dsh-client-ui-file-organizer',
   'packages/experimental/filetags-bundle': '@deepseek-ai/dsh-filetags-bundle',
   'packages/experimental/tool-fs-transfer': '@deepseek-ai/dsh-tool-fs-transfer',
   'packages/experimental/office-text': '@deepseek-ai/dsh-office-text',
   'packages/experimental/file-organizer': '@deepseek-ai/dsh-file-organizer',
+  'packages/experimental/tasks': '@deepseek-ai/dsh-tasks',
+  'packages/experimental/tasks-bundle': '@deepseek-ai/dsh-tasks-bundle',
+  'packages/experimental/client-ui-tasks': '@deepseek-ai/dsh-client-ui-tasks',
 } satisfies Record<`packages/experimental/${string}`, `@deepseek-ai/dsh-${string}`>
 
 /** Legacy npm namespace, allowed only in `LEGACY_PREFIXED_EXPERIMENTAL_PACKAGE_DIRECTORIES`. */

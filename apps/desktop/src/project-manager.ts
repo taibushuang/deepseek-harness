@@ -29,6 +29,8 @@ const PROJECT_NAME = '@deepseek-ai/dsh-desktop-runtime'
 const DSH_PACKAGE = '@deepseek-ai/dsh'
 const CORE_BUILD_PACKAGE = '@deepseek-ai/dsh-subprocess-local'
 const WEB_PROFILE = PROFILE_TEMPLATES.web as ProfileTemplate
+/** The Linux package ships a Chromium build, so its first profile starts with browser use mounted. */
+const LINUX_DESKTOP_BUNDLES = ['@deepseek-ai/dsh-browser-use-playwright-bundle'] as const
 const WORKSPACE_SETTINGS = 'nodeLinker: hoisted\nautoInstallPeers: false\n'
 function writeJson(path: string, value: unknown): void {
   writeFileSync(path, `${JSON.stringify(value, undefined, 2)}\n`, { mode: 0o600 })
@@ -171,5 +173,7 @@ export function createDevelopmentProjectMetadata(projectDir: string, release: De
 
 /** Create the first external plugin profile without running a package manager. */
 export function createPluginProfile(projectDir: string): void {
-  initProfile(projectDir, WEB_PROFILE.bundles)
+  initProfile(projectDir, process.platform === 'linux'
+    ? [...WEB_PROFILE.bundles, ...LINUX_DESKTOP_BUNDLES]
+    : WEB_PROFILE.bundles)
 }

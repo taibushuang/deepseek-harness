@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Playwright ブラウザ",
+    "description": "各セッションに Chromium ブラウザを提供し、ページ操作、スクリーンショット、操作の記録を行います。"
+  }
+}

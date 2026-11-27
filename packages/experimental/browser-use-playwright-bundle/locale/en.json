@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Playwright browser",
+    "description": "Give each Session a Chromium browser for page automation, screenshots, and interaction recording."
+  }
+}

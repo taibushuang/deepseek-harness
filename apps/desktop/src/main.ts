@@ -7,6 +7,7 @@ import { DesktopUpdateSettings } from './update-settings.ts'
 import { isDesktopUpdateChannel } from './settings-file.ts'
 import type { ProductEventMap, ProductEvent } from '@deepseek-ai/dsh-client-product-analytics/types'
 import { WINDOWS_TITLEBAR_HEIGHT } from './windows-layout.ts'
+import { existsSync } from 'node:fs'
 import { access, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -217,6 +218,16 @@ function runtimeResources(): RuntimeResources {
   return { node, nodeBin, pnpm, dsh }
 }
 
+/**
+ * Point Playwright at the Chromium copy shipped beside the packaged application.
+ * @returns Environment fields for a package that carries Playwright browsers; empty otherwise.
+ */
+function bundledPlaywrightEnvironment(): NodeJS.ProcessEnv {
+  if (!app.isPackaged) return {}
+  const directory = join(process.resourcesPath, 'playwright-browsers')
+  return existsSync(directory) ? { PLAYWRIGHT_BROWSERS_PATH: directory } : {}
+}
+
 function developmentPrimaryRuntime(): string {
   const directory = process.env.DSH_DESKTOP_PRIMARY_RUNTIME_DIR
   if (directory === undefined || directory === '') {
@@ -402,7 +413,7 @@ async function main(): Promise<void> {
     return result.environment
   })
   let hostEnvironment: NodeJS.ProcessEnv = process.env
-  const prepareHostEnvironment = async (): Promise<void> => { hostEnvironment = await loginShell }
+  const prepareHostEnvironment = async (): Promise<void> => { hostEnvironment = { ...await loginShell, ...bundledPlaywrightEnvironment() } }
   let quitting = false
   let startup: Promise<void> | undefined
   let workspaceRecovery: Promise<void> | undefined

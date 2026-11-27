@@ -336,6 +336,9 @@ importers:
       '@deepseek-ai/dsh-base':
         specifier: workspace:*
         version: link:../../packages/bundle/base
+      '@deepseek-ai/dsh-browser-use-playwright-bundle':
+        specifier: workspace:*
+        version: link:../../packages/experimental/browser-use-playwright-bundle
       '@deepseek-ai/dsh-client-ui-agent-preset':
         specifier: workspace:*
         version: link:../../packages/client/ui-agent-preset
@@ -9394,6 +9397,19 @@ importers:
       '@deepseek-ai/dsh-working-directory':
         specifier: workspace:*
         version: link:../../session/working-directory
+
+  packages/experimental/browser-use-playwright-bundle:
+    dependencies:
+      '@deepseek-ai/dsh-browser-use':
+        specifier: workspace:*
+        version: link:../../browser-use/browser-use
+      '@deepseek-ai/dsh-experimental-browser-use-playwright-mcp':
+        specifier: workspace:*
+        version: link:../browser-use-playwright-mcp
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: workspace:~
+        version: link:../../../vendor/cordis
 
   packages/experimental/browser-use-playwright-mcp:
     dependencies:

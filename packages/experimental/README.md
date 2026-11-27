@@ -96,6 +96,7 @@ Promotion requires a named product role, documented public behavior and limitati
 | [`filetags`](filetags/README.md) | Central-database tags for files and directories, with tag-expression search as model tools and the `fileTags` Remote namespace | `ctx.fileTags` |
 | [`client-ui-filetags`](client-ui-filetags/README.md) | Right Sidebar tag panel over the `fileTags` Remote namespace | — |
 | [`filetags-bundle`](filetags-bundle/README.md) | Optional composition of the tag tools and the Sidebar panel | — |
+| [`browser-use-playwright-bundle`](browser-use-playwright-bundle/README.md) | Optional Playwright Chromium automation, screenshots, and interaction recording for each Session | — |
 | [`tool-fs-transfer`](tool-fs-transfer/README.md) | Byte-exact file copy and move tools with no-overwrite guards | `ctx.tools` |
 | [`office-text`](office-text/README.md) | Plain-text reading of Word, PowerPoint, Excel, and PDF documents | `ctx.officeText` |
 | [`file-organizer`](file-organizer/README.md) | Rule-driven folder preview, apply, undo, and history with optional tagging | `ctx.fileOrganizer` |

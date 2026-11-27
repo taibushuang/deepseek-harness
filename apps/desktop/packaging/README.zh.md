@@ -15,6 +15,7 @@ description: "在本地或 Windows／macOS Actions 中生成 Desktop 安装包�
 - [选择打包方式](#choose-a-build)
 - [发布版本](#release-versions)
 - [配置与本地构建](#configuration-and-local-builds)
+- [麒麟 x86_64 上的 Linux AppImage](#linux-kylin)
 - [Windows Actions 打包](#windows-actions)
 - [macOS 自托管打包](#macos-actions)
 - [未签名 Windows 测试安装包](#unsigned-windows-test-installer)
@@ -97,11 +98,54 @@ pnpm run package:desktop:mac:x64
 pnpm run package:desktop:win:x64
 ```
 
-macOS arm64 命令要求 Apple Silicon。macOS x64 命令可以在 Intel macOS 或带 Rosetta 的 Apple Silicon 上运行。Windows x64 命令要求 Windows x64。Linux 不是受支持的 Desktop 发布目标。
+macOS arm64 命令要求 Apple Silicon。macOS x64 命令可以在 Intel macOS 或带 Rosetta 的 Apple Silicon 上运行。Windows x64 命令要求 Windows x64。Linux x64 构建在 Linux x64 主机上运行，生成用于本地分发的未签名 AppImage；它没有签名、更新源或上传路径。
 
 macOS 正式发布和本地未签名 DMG 都通过 [electron-builder 配置](../scripts/electron-builder-config.mjs)中的 `dmg.format: 'ULMO'` 使用 LZMA 压缩。[构建时补丁](../../../patches/app-builder-lib@26.17.0.patch)为固定版本 builder 的校验规则和 TypeScript 声明添加此格式。
 
 每个目标都在 `apps/desktop/.desktop-build/targets/<target>/` 下持有自己的打包输入、已准备运行时、包集合、dsh 依赖树、pnpm 准备状态、未打包应用、更新元数据和最终产物。Electron 归档缓存继续由 `.desktop-build/downloads` 共享，因为每个归档文件名都包含版本、平台和架构，并且在解包前经过验证。目标构建绝不读取其他目标的可变准备状态。
+
+<a id="linux-kylin"></a>
+
+## 麒麟 x86_64 上的 Linux AppImage
+
+请直接在麒麟 x86_64 机器上构建；该目标要求 Linux x64 主机，不能从 macOS 或 Windows 交叉编译。请在图形桌面会话中执行命令，因为打包会启动组装后的 Electron 应用做运行时冒烟检查。
+
+安装 Node 24.9 或更高版本、通过 Corepack 提供的 pnpm，以及 Git、Python 3、tar 和 Electron/Chromium 运行库。在基于 Debian 的麒麟发行版上，常用依赖如下：
+
+```sh
+sudo apt-get install -y build-essential python3 tar \
+  libgtk-3-0 libnss3 libxss1 libasound2 libgbm1 libdrm2 libxkbcommon0 \
+  libatk-bridge2.0-0 libatspi2.0-0 libcups2 libpango-1.0-0 libcairo2 \
+  libxcomposite1 libxdamage1 libxrandr2 libxfixes3 libxext6 libxi6 libxtst6 \
+  libsecret-1-0 libfuse2
+```
+
+部分发行版使用不同包名（例如 `libasound2t64`）；apt 提示替代包时安装对应版本。`libfuse2` 用于运行 AppImage，不参与构建。Playwright 内置的 Chromium 与 Electron 使用同一组 GTK 和 NSS 库。
+
+在仓库根目录安装依赖并执行固定目标命令：
+
+```sh
+corepack enable
+pnpm install --frozen-lockfile
+pnpm run build
+pnpm run package:desktop:linux:x64 --check
+pnpm run package:desktop:linux:x64
+```
+
+`--check` 只校验本地配置和工具链，不执行构建。打包命令会重新执行完整构建和运行时准备，不会消费过期的 `build/` 输出。加 `--dir` 可停在 `apps/desktop/.desktop-build/targets/linux-x64/unsigned-artifacts/linux-unpacked/`；AppImage 写在该目录旁，文件名为 `deepseek-harness-<version>-linux-x64-unsigned.AppImage`。成功后命令会打印 `AppImage:` 和绝对路径。
+
+Linux 打包始终未签名，并使用本地构建 profile。它不读取发布 preset、签名凭证、更新源，也没有上传命令。`-unsigned` 后缀用于与已签名的 macOS 和 Windows 发布产物区分。
+
+Linux 安装包会把固定版本 `@playwright/mcp` 所需的 Chromium 安装到 `resources/playwright-browsers`，Desktop 通过 `PLAYWRIGHT_BROWSERS_PATH` 把该目录传给 Host。Linux 上首次创建的 Desktop 配置还会挂载 `@deepseek-ai/dsh-browser-use-playwright-bundle`，因此无需手动安装插件即可使用 `mcp__playwright-mcp__*` 工具，包括 `browser_start_recording` 和 `browser_stop_recording`。仅在离线构建且通过其他路径提供 Chromium 时设置 `DSH_DESKTOP_SKIP_PLAYWRIGHT_BROWSER=1`；此时组合包回退到 Playwright 的常规浏览器发现逻辑。
+
+赋予执行权限后运行 AppImage：
+
+```sh
+chmod +x apps/desktop/.desktop-build/targets/linux-x64/unsigned-artifacts/deepseek-harness-*-linux-x64-unsigned.AppImage
+./apps/desktop/.desktop-build/targets/linux-x64/unsigned-artifacts/deepseek-harness-*-linux-x64-unsigned.AppImage
+```
+
+如果应用因未启用非特权用户命名空间而退出，可先用 `--no-sandbox` 做本地测试，并请系统管理员为正常使用启用用户命名空间。打开插件页确认 Playwright 浏览器已启用，然后让模型打开网页并录制一段操作。停止录制后，结果会给出 Session 工作目录中录制目录下的 Playwright trace 路径；可用 `pnpm exec playwright show-trace <trace>` 打开。
 
 <a id="windows-actions"></a>
 

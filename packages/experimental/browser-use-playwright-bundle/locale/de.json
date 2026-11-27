@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Playwright-Browser",
+    "description": "Jeder Sitzung einen Chromium-Browser für Seitenautomatisierung, Screenshots und Interaktionsaufzeichnung geben."
+  }
+}

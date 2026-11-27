@@ -96,6 +96,7 @@ kind: "package-group"
 | [`filetags`](filetags/README.zh.md) | 面向文件和目录的中央数据库标签，以标签表达式搜索作为模型工具，并提供 `fileTags` 远程命名空间 | `ctx.fileTags` |
 | [`client-ui-filetags`](client-ui-filetags/README.zh.md) | 基于 `fileTags` 远程命名空间的右侧栏标签面板 | — |
 | [`filetags-bundle`](filetags-bundle/README.zh.md) | 标签工具与侧栏面板的可选组合 | — |
+| [`browser-use-playwright-bundle`](browser-use-playwright-bundle/README.zh.md) | 为每个会话提供 Playwright Chromium 网页自动化、截图与交互录制的可选组合 | — |
 | [`tool-fs-transfer`](tool-fs-transfer/README.zh.md) | 逐字节复制与移动文件、且拒绝覆盖的工具 | `ctx.tools` |
 | [`office-text`](office-text/README.zh.md) | 读取 Word、PowerPoint、Excel 与 PDF 文档的纯文本 | `ctx.officeText` |
 | [`file-organizer`](file-organizer/README.zh.md) | 按规则预览、执行、撤销和查看历史的文件夹整理（可选打标签） | `ctx.fileOrganizer` |

@@ -248,6 +248,22 @@ it.each([
   expect(writeFileSync).not.toHaveBeenCalled()
 })
 
+it('packages Linux as an unsigned AppImage with the bundled Playwright browser', async () => {
+  const { run, stages } = supervisor()
+  await packageTarget(parseDesktopPackageInvocation(['linux-x64'], 'linux', 'x64'), {
+    ...environment, DSH_DESKTOP_TARGET_PLATFORM: 'linux', DSH_DESKTOP_TARGET_ARCH: 'x64',
+  }, run)
+  expect(stages[0]).toBe('run build --profile local')
+  expect(stages).toContain('run prepare:playwright-browser')
+  expect(stages).toContain('exec electron-builder --config electron-builder.config.mjs --linux --x64 --publish never')
+  expect(stages.at(-1)).toBe('exec tsx scripts/smoke-packaged-runtime.ts --unsigned')
+  for (const call of run.run.mock.calls) {
+    expect(call[3].env).toMatchObject({ DSH_DESKTOP_UNSIGNED: '1', DSH_DESKTOP_TARGET_PLATFORM: 'linux' })
+    expect(call[3].env).not.toHaveProperty('CSC_LINK')
+  }
+  expect(writeFileSync).not.toHaveBeenCalled()
+})
+
 it('checks the assembled macOS runtime before notarizing and recording the release', async () => {
   const { run, stages } = supervisor()
   vi.mocked(packageMacOSArtifacts).mockImplementationOnce(async () => {

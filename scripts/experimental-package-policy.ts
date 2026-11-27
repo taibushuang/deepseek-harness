@@ -42,6 +42,7 @@ export const EXPERIMENTAL_PACKAGE_NAME_EXCEPTIONS: Readonly<Record<string, strin
   'packages/experimental/tasks': '@deepseek-ai/dsh-tasks',
   'packages/experimental/tasks-bundle': '@deepseek-ai/dsh-tasks-bundle',
   'packages/experimental/client-ui-tasks': '@deepseek-ai/dsh-client-ui-tasks',
+  'packages/experimental/browser-use-playwright-bundle': '@deepseek-ai/dsh-browser-use-playwright-bundle',
 } satisfies Record<`packages/experimental/${string}`, `@deepseek-ai/dsh-${string}`>
 
 /** Legacy npm namespace, allowed only in `LEGACY_PREFIXED_EXPERIMENTAL_PACKAGE_DIRECTORIES`. */

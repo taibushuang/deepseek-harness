@@ -455,6 +455,7 @@
     { "path": "./packages/experimental/filetags-bundle" },
     { "path": "./packages/experimental/tool-fs-transfer" },
     { "path": "./packages/experimental/office-text" },
+    { "path": "./packages/experimental/browser-use-playwright-bundle" },
     { "path": "./packages/experimental/file-organizer" },
     { "path": "./packages/experimental/tasks" },
     { "path": "./packages/experimental/tasks-bundle" },

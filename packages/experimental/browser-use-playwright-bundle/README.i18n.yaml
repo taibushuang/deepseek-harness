@@ -1,0 +1,43 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write packages/experimental/browser-use-playwright-bundle/README.md
+/:
+  en: 84f851cda0d1438b
+  zh: f517553c2cb106fc
+/deepseek-ai-dsh-browser-use-playwright-bundle:
+  en: 656d1ae38a35ceb5
+  zh: 29c6ebbad0c7cc3c
+/deepseek-ai-dsh-browser-use-playwright-bundle/summary:
+  en: d188ada85a374936
+  zh: e6796e221b139b6c
+/deepseek-ai-dsh-browser-use-playwright-bundle/table-of-contents:
+  en: 76368b6b1da79c80
+  zh: c7d57a49ff713e9a
+/deepseek-ai-dsh-browser-use-playwright-bundle/use-this-package:
+  en: a63673a8b746595a
+  zh: d3dc2410962a225b
+/deepseek-ai-dsh-browser-use-playwright-bundle/understand-the-implementation:
+  en: 663cdf34647d0e69
+  zh: 660331a2030f0256
+/deepseek-ai-dsh-browser-use-playwright-bundle/model-experience:
+  en: 215e7ba838619b7b
+  zh: a311da3843709f90
+/deepseek-ai-dsh-browser-use-playwright-bundle/model-experience/browser-tools-and-recordings:
+  en: 9b8543fea565c25c
+  zh: 16c624dd80b6ff24
+/deepseek-ai-dsh-browser-use-playwright-bundle/model-experience/browser-tools-and-recordings/what-the-model-sees:
+  en: 70d2f2f9fa92d67d
+  zh: 5d8001dfe20450fa
+/deepseek-ai-dsh-browser-use-playwright-bundle/model-experience/browser-tools-and-recordings/token-effect:
+  en: 45a49325b5976c31
+  zh: 5fff9ad68f42b613
+/deepseek-ai-dsh-browser-use-playwright-bundle/model-experience/browser-tools-and-recordings/kv-cache-effect:
+  en: 22d86d6a69b7a6eb
+  zh: 7070f7096628f4c8
+/deepseek-ai-dsh-browser-use-playwright-bundle/known-limitations-and-deferred-work:
+  en: da78a0d8f3397aa5
+  zh: 987f978317457247
+/deepseek-ai-dsh-browser-use-playwright-bundle/known-limitations-and-deferred-work/dev-note:
+  en: a3ef1c00ac6aa271
+  zh: d137df48b94c0f83

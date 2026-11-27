@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Navegador Playwright",
+    "description": "Oferece a cada sessão um navegador Chromium para automatizar páginas, capturar telas e gravar interações."
+  }
+}

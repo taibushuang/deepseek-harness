@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Playwright 浏览器",
+    "description": "为每个会话提供 Chromium 浏览器，可自动操作网页、截图并录制交互过程。"
+  }
+}

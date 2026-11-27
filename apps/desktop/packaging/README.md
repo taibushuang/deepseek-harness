@@ -15,6 +15,7 @@ Build Desktop installers locally or through Windows or macOS Actions, choose dep
 - [Choose a build path](#choose-a-build)
 - [Release versions](#release-versions)
 - [Configuration and local builds](#configuration-and-local-builds)
+- [Linux AppImage on Kylin x86_64](#linux-kylin)
 - [Windows Actions packaging](#windows-actions)
 - [macOS self-hosted packaging](#macos-actions)
 - [Unsigned Windows test installer](#unsigned-windows-test-installer)
@@ -97,11 +98,54 @@ pnpm run package:desktop:mac:x64
 pnpm run package:desktop:win:x64
 ```
 
-The macOS arm64 command requires Apple Silicon. The macOS x64 command runs on Intel macOS or Apple Silicon with Rosetta. The Windows x64 command requires Windows x64. Linux is not a supported Desktop release target.
+The macOS arm64 command requires Apple Silicon. The macOS x64 command runs on Intel macOS or Apple Silicon with Rosetta. The Windows x64 command requires Windows x64. Linux x64 builds run on a Linux x64 host and produce an unsigned AppImage for local distribution; they have no signing, update feed, or upload path.
 
 Both release and local unsigned macOS DMGs use LZMA compression (`dmg.format: 'ULMO'`) in [the electron-builder configuration](../scripts/electron-builder-config.mjs). A [build-time patch](../../../patches/app-builder-lib@26.17.0.patch) adds this format to the pinned builder's validation and TypeScript declarations.
 
 Each target owns its packed package inputs, prepared runtime, package set, dsh tree, pnpm preparation state, unpacked application, update metadata, and final artifacts under `apps/desktop/.desktop-build/targets/<target>/`. The Electron archive cache remains shared under `.desktop-build/downloads` because every archive name includes its version, platform, and architecture and is verified before extraction. A target build never consumes another target's mutable preparation state.
+
+<a id="linux-kylin"></a>
+
+## Linux AppImage on Kylin x86_64
+
+Build on the Kylin x86_64 machine itself; the target requires a Linux x64 host and cannot be cross-built from macOS or Windows. Run the commands in a graphical desktop session because packaging starts the assembled Electron application for its runtime smoke checks.
+
+Install Node 24.9 or newer, pnpm through Corepack, Git, Python 3, tar, and the Electron/Chromium runtime libraries. On Debian-based Kylin distributions the library set is usually:
+
+```sh
+sudo apt-get install -y build-essential python3 tar \
+  libgtk-3-0 libnss3 libxss1 libasound2 libgbm1 libdrm2 libxkbcommon0 \
+  libatk-bridge2.0-0 libatspi2.0-0 libcups2 libpango-1.0-0 libcairo2 \
+  libxcomposite1 libxdamage1 libxrandr2 libxfixes3 libxext6 libxi6 libxtst6 \
+  libsecret-1-0 libfuse2
+```
+
+Package names differ on some releases (`libasound2t64`, for example); install the distribution's matching package when apt reports an alternative. `libfuse2` is needed to run the AppImage, not to build it. Playwright's bundled Chromium uses the same GTK and NSS libraries as Electron.
+
+From the repository root, install dependencies and run the fixed-target command:
+
+```sh
+corepack enable
+pnpm install --frozen-lockfile
+pnpm run build
+pnpm run package:desktop:linux:x64 --check
+pnpm run package:desktop:linux:x64
+```
+
+The check validates the local configuration and toolchain without building. The packaging command repeats the complete build and runtime preparation, so it does not consume a stale `build/` output. Add `--dir` to stop at `apps/desktop/.desktop-build/targets/linux-x64/unsigned-artifacts/linux-unpacked/`; the AppImage is written beside it as `deepseek-harness-<version>-linux-x64-unsigned.AppImage`. After success the command prints `AppImage:` followed by the absolute path.
+
+Linux packaging is always unsigned and uses the local build profile. It ignores release presets, signing credentials, update feeds, and upload commands. The `-unsigned` suffix distinguishes the artifact from signed macOS and Windows releases.
+
+The Linux package installs the Chromium revision that the pinned `@playwright/mcp` dependency expects into `resources/playwright-browsers`, and Desktop passes that directory to the Host through `PLAYWRIGHT_BROWSERS_PATH`. The first Desktop profile on Linux also mounts `@deepseek-ai/dsh-browser-use-playwright-bundle`, so the `mcp__playwright-mcp__*` tools, including `browser_start_recording` and `browser_stop_recording`, are available without installing a plugin. Set `DSH_DESKTOP_SKIP_PLAYWRIGHT_BROWSER=1` only for an offline build that provides Chromium through another path; the bundle then falls back to Playwright's normal browser discovery.
+
+Run the AppImage after making it executable:
+
+```sh
+chmod +x apps/desktop/.desktop-build/targets/linux-x64/unsigned-artifacts/deepseek-harness-*-linux-x64-unsigned.AppImage
+./apps/desktop/.desktop-build/targets/linux-x64/unsigned-artifacts/deepseek-harness-*-linux-x64-unsigned.AppImage
+```
+
+If the application exits because unprivileged user namespaces are disabled, start it with `--no-sandbox` for a local test and ask the system administrator to enable user namespaces for normal use. Open Plugins and confirm Playwright browser is enabled, then ask the model to open a page and record a short interaction. A stopped recording reports its Playwright trace path in the recording directory of the Session workspace; open it with `pnpm exec playwright show-trace <trace>`.
 
 <a id="windows-actions"></a>
 
@@ -278,7 +322,7 @@ NSIS removes its temporary extraction tree during installation, before the compl
 
 ## Desktop runtime preparation
 
-Windows prepares Electron and primary-runtime concurrently; macOS prepares them serially. CLI preparation and `versions.json` publication require both payloads to succeed. If either Windows payload fails, preparation waits for the other to settle before reporting failure and publishes neither CLI resources nor versions. Nested preparation timings overlap and must not be added together.
+Windows prepares Electron and primary-runtime concurrently; macOS and Linux prepare them serially. CLI preparation and `versions.json` publication require both payloads to succeed. If either Windows payload fails, preparation waits for the other to settle before reporting failure and publishes neither CLI resources nor versions. Nested preparation timings overlap and must not be added together.
 
 `DSH_DESKTOP_PACKAGE_CACHE_DIR` in the packaging process environment selects a nonempty absolute directory for shared `downloads` and `pnpm-store` caches; omission uses `.desktop-build`. Temporary installation projects, lockfiles and configuration remain separate per run. Runtime installation verifies store integrity and copies package files so later signing cannot modify cached bytes; cleanup retains these caches. Both packaging workflows use `runner.tool_cache/dsh-desktop-package-cache`; Windows repository dependency installation uses a separate `.pnpm-store` at the workspace drive root. Both installation logs identify their store and report package reuse. A fresh runtime lockfile still resolves dependencies on every run. Share writable caches only among trusted build jobs; integrity checks do not isolate untrusted writers. Clean caches only when no job is using them. Operators manage cache disk usage; no automatic eviction runs.
 
